@@ -3,17 +3,17 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class KingMovesCalculator implements PieceMovesCalculator {
+public class KnightMovesCalculator implements PieceMovesCalculator {
     @Override
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
         Collection<ChessMove> moves = new ArrayList<>();
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
 
-        // All 8 possible directions for a King
+        // L-shapes
         int[][] directions = {
-                {1, 0}, {-1, 0}, {0, 1}, {0, -1},
-                {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
+            {2, 1}, {2, -1}, {-2, 1}, {-2, -1},
+            {1, 2}, {1, -2}, {-1, 2}, {-1, -2}
         };
 
         for (int[] dir : directions) {
@@ -24,13 +24,11 @@ public class KingMovesCalculator implements PieceMovesCalculator {
                 ChessPosition newPos = new ChessPosition(newRow, newCol);
                 ChessPiece pieceAtPos = board.getPiece(newPos);
 
-                // If empty or enemy piece, it's a valid move
                 if (pieceAtPos == null || pieceAtPos.getTeamColor() != piece.getTeamColor()) {
                     moves.add(new ChessMove(myPosition, newPos, null));
                 }
             }
         }
-
         return moves;
     }
 }
