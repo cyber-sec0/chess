@@ -23,7 +23,12 @@ public class ChessBoard {
             addPiece(new ChessPosition(7, i), new ChessPiece(black, ChessPiece.PieceType.PAWN));
         }
 
-        ChessPiece.PieceType[] backRow = {ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KING, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.ROOK};
+        ChessPiece.PieceType[] backRow = {
+                ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP,
+                ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KING, ChessPiece.PieceType.BISHOP,
+                ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.ROOK
+        };
+
         for (int i = 0; i < 8; i++) {
             addPiece(new ChessPosition(1, i + 1), new ChessPiece(white, backRow[i]));
             addPiece(new ChessPosition(8, i + 1), new ChessPiece(black, backRow[i]));
@@ -32,11 +37,17 @@ public class ChessBoard {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         return Arrays.deepEquals(squares, ((ChessBoard) o).squares);
     }
 
     @Override
-    public int hashCode() {return Arrays.deepHashCode(squares);}
+    public int hashCode() {
+        return Arrays.deepHashCode(squares);
+    }
 }
