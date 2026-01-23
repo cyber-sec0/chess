@@ -6,22 +6,29 @@ import java.util.Collection;
 public class KnightMovesCalculator implements PieceMovesCalculator {
     @Override
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
-        Collection<ChessMove> moves = new ArrayList<>();
-        int[][] knightMoves = {{2,1},{2,-1},{-2,1},{-2,-1},{1,2},{1,-2},{-1,2},{-1,-2}}; //All 8 possible knight moves
+        Collection<ChessMove> legalMoves = new ArrayList<>();
 
-        for (int[] move : knightMoves) {
-            int newRow = myPosition.getRow() + move[0];
-            int newCol = myPosition.getColumn() + move[1];
+        // This is the L shape moves logic.
+        int[][] jumpPatterns = {
+                {2, 1}, {2, -1}, {-2, 1}, {-2, -1},
+                {1, 2}, {1, -2}, {-1, 2}, {-1, -2}
+        };
 
-            if (newRow >= 1 && newRow <= 8 && newCol >= 1 && newCol <= 8) { //Check bounds
-                ChessPosition newPos = new ChessPosition(newRow, newCol);
-                ChessPiece pieceAtPos = board.getPiece(newPos);
+        for (int[] jump : jumpPatterns) {
+            int targetRow = myPosition.getRow() + jump[0];
+            int targetCol = myPosition.getColumn() + jump[1];
 
-                if (pieceAtPos == null || pieceAtPos.getTeamColor() != piece.getTeamColor()) { //Empty or enemy
-                    moves.add(new ChessMove(myPosition, newPos, null));
+            // Verifying if the jump lands inside the map (board)
+            if (targetRow >= 1 && targetRow <= 8 && targetCol >= 1 && targetCol <= 8) {
+                ChessPosition landingSpot = new ChessPosition(targetRow, targetCol);
+                ChessPiece existingPiece = board.getPiece(landingSpot);
+
+                // Knights can only land if the spot is empty or has an enemy
+                if (existingPiece == null || existingPiece.getTeamColor() != piece.getTeamColor()) {
+                    legalMoves.add(new ChessMove(myPosition, landingSpot, null));
                 }
             }
         }
-        return moves;
+        return legalMoves;
     }
 }
