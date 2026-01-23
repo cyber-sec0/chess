@@ -5,12 +5,12 @@ import java.util.Objects;
 
 public class ChessPiece {
 
-    private final ChessGame.TeamColor pieceColor;
-    private final PieceType type;
+    private final ChessGame.TeamColor myTeamColor;
+    private final PieceType myPieceType;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
-        this.pieceColor = pieceColor;
-        this.type = type;
+        this.myTeamColor = pieceColor;
+        this.myPieceType = type;
     }
 
     public enum PieceType {
@@ -23,40 +23,41 @@ public class ChessPiece {
     }
 
     public ChessGame.TeamColor getTeamColor() {
-        return pieceColor;
+        return myTeamColor;
     }
 
     public PieceType getPieceType() {
-        return type;
+        return myPieceType;
     }
 
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        PieceMovesCalculator calculator;
+        // Using an interface here to allow polymorphism for the movement logic
+        PieceMovesCalculator movementCalculator;
 
-        switch (type) {
+        switch (myPieceType) {
             case KING:
-                calculator = new KingMovesCalculator();
+                movementCalculator = new KingMovesCalculator();
                 break;
             case ROOK:
-                calculator = new RookMovesCalculator();
+                movementCalculator = new RookMovesCalculator();
                 break;
             case BISHOP:
-                calculator = new BishopMovesCalculator();
+                movementCalculator = new BishopMovesCalculator();
                 break;
             case KNIGHT:
-                calculator = new KnightMovesCalculator();
+                movementCalculator = new KnightMovesCalculator();
                 break;
             case QUEEN:
-                calculator = new QueenMovesCalculator();
+                movementCalculator = new QueenMovesCalculator();
                 break;
             case PAWN:
-                calculator = new PawnMovesCalculator();
+                movementCalculator = new PawnMovesCalculator();
                 break;
             default:
-                throw new RuntimeException("Unknown piece type");
+                throw new RuntimeException("Error: Unknown piece type detected!");
         }
 
-        return calculator.calculateMoves(board, myPosition, this);
+        return movementCalculator.calculateMoves(board, myPosition, this);
     }
 
     @Override
@@ -68,19 +69,16 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return pieceColor == that.pieceColor && type == that.type;
+        return myTeamColor == that.myTeamColor && myPieceType == that.myPieceType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pieceColor, type);
+        return Objects.hash(myTeamColor, myPieceType);
     }
 
     @Override
     public String toString() {
-        return "ChessPiece{" +
-                "color=" + pieceColor +
-                ", type=" + type +
-                '}';
+        return "ChessPiece{" + "color=" + myTeamColor + ", type=" + myPieceType + '}';
     }
 }
