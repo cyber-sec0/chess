@@ -3,35 +3,46 @@ package chess;
 import java.util.Arrays;
 
 public class ChessBoard {
-    private ChessPiece[][] squares = new ChessPiece[8][8];
+    // This matrix stores the pieces. 8x8 is standard for chess.
+    private ChessPiece[][] boardStorageMatrix = new ChessPiece[8][8];
 
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        squares[position.getRow() - 1][position.getColumn() - 1] = piece;
+        // We must subtract 1 because computer arrays start at 0 but chess starts at 1
+        boardStorageMatrix[position.getRow() - 1][position.getColumn() - 1] = piece;
     }
 
     public ChessPiece getPiece(ChessPosition position) {
-        return squares[position.getRow() - 1][position.getColumn() - 1];
+        return boardStorageMatrix[position.getRow() - 1][position.getColumn() - 1];
     }
 
+    /**
+     * Sets the board to the default starting board
+     * (How the game of chess usually starts)
+     */
     public void resetBoard() {
-        squares = new ChessPiece[8][8];
-        ChessGame.TeamColor white = ChessGame.TeamColor.WHITE;
-        ChessGame.TeamColor black = ChessGame.TeamColor.BLACK;
+        // Clearing the old board to make sure no artifacts remain
+        boardStorageMatrix = new ChessPiece[8][8];
 
+        ChessGame.TeamColor whiteTeam = ChessGame.TeamColor.WHITE;
+        ChessGame.TeamColor blackTeam = ChessGame.TeamColor.BLACK;
+
+        // Putting the pawns in the front lines (rows 2 and 7)
         for (int i = 1; i <= 8; i++) {
-            addPiece(new ChessPosition(2, i), new ChessPiece(white, ChessPiece.PieceType.PAWN));
-            addPiece(new ChessPosition(7, i), new ChessPiece(black, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(2, i), new ChessPiece(whiteTeam, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(7, i), new ChessPiece(blackTeam, ChessPiece.PieceType.PAWN));
         }
 
-        ChessPiece.PieceType[] backRow = {
+        // Using an array to organize the powerful pieces in the back
+        ChessPiece.PieceType[] noblePieces = {
                 ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP,
                 ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KING, ChessPiece.PieceType.BISHOP,
                 ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.ROOK
         };
 
+        // Using a loop to organize the powerful pieces in the back
         for (int i = 0; i < 8; i++) {
-            addPiece(new ChessPosition(1, i + 1), new ChessPiece(white, backRow[i]));
-            addPiece(new ChessPosition(8, i + 1), new ChessPiece(black, backRow[i]));
+            addPiece(new ChessPosition(1, i + 1), new ChessPiece(whiteTeam, noblePieces[i]));
+            addPiece(new ChessPosition(8, i + 1), new ChessPiece(blackTeam, noblePieces[i]));
         }
     }
 
@@ -43,11 +54,12 @@ public class ChessBoard {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return Arrays.deepEquals(squares, ((ChessBoard) o).squares);
+        ChessBoard that = (ChessBoard) o;
+        return Arrays.deepEquals(boardStorageMatrix, that.boardStorageMatrix);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(squares);
+        return Arrays.deepHashCode(boardStorageMatrix);
     }
 }
