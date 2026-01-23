@@ -5,7 +5,8 @@ import java.util.Collection;
 public class RookMovesCalculator extends SlidingMovesCalculator {
     @Override
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
-        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}; // Up, Down, Right, Left
-        return calculateSlidingMoves(board, myPosition, piece, directions);
+        // Rooks move in straight lines (up, down, left, right)
+        int[][] straightWays = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        return runSlidingLogic(board, myPosition, piece, straightWays);
     }
 }
