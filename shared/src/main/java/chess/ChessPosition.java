@@ -4,7 +4,6 @@ import java.util.Objects;
 
 public class ChessPosition {
     // I am using these names to be very clear about what variable is what
-    // Changed to camelCase to satisfy the quality checker
     private final int rowLocationOnBoard;
     private final int colLocationOnBoard;
 

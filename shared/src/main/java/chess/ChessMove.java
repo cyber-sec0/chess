@@ -4,27 +4,27 @@ import java.util.Objects;
 
 public class ChessMove {
     // Saving the start and end to know the trajectory of the piece
-    private final ChessPosition starting_location;
-    private final ChessPosition ending_location;
-    private final ChessPiece.PieceType type_of_promotion;
+    private final ChessPosition startingLocation;
+    private final ChessPosition endingLocation;
+    private final ChessPiece.PieceType typeOfPromotion;
 
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
-        this.starting_location = startPosition;
-        this.ending_location = endPosition;
-        this.type_of_promotion = promotionPiece;
+        this.startingLocation = startPosition;
+        this.endingLocation = endPosition;
+        this.typeOfPromotion = promotionPiece;
     }
 
     public ChessPosition getStartPosition() {
-        return starting_location;
+        return startingLocation;
     }
 
     public ChessPosition getEndPosition() {
-        return ending_location;
+        return endingLocation;
     }
 
     public ChessPiece.PieceType getPromotionPiece() {
-        return type_of_promotion;
+        return typeOfPromotion;
     }
 
     @Override
@@ -36,13 +36,13 @@ public class ChessMove {
             return false;
         }
         ChessMove chessMove = (ChessMove) o;
-        return Objects.equals(starting_location, chessMove.starting_location)
-                && Objects.equals(ending_location, chessMove.ending_location)
-                && type_of_promotion == chessMove.type_of_promotion;
+        return Objects.equals(startingLocation, chessMove.startingLocation)
+                && Objects.equals(endingLocation, chessMove.endingLocation)
+                && typeOfPromotion == chessMove.typeOfPromotion;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(starting_location, ending_location, type_of_promotion);
+        return Objects.hash(startingLocation, endingLocation, typeOfPromotion);
     }
 }
