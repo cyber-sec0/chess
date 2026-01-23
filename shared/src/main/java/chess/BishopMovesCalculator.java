@@ -5,7 +5,8 @@ import java.util.Collection;
 public class BishopMovesCalculator extends SlidingMovesCalculator {
     @Override
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
-        int[][] directions = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}; // Diagonals
-        return calculateSlidingMoves(board, myPosition, piece, directions);
+        // Bishops only move in diagonals
+        int[][] diagonalWays = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+        return runSlidingLogic(board, myPosition, piece, diagonalWays);
     }
 }
