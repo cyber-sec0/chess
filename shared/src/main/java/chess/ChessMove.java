@@ -3,26 +3,28 @@ package chess;
 import java.util.Objects;
 
 public class ChessMove {
-    private final ChessPosition startPosition;
-    private final ChessPosition endPosition;
-    private final ChessPiece.PieceType promotionPiece;
+    // Saving the start and end to know the trajectory of the piece
+    private final ChessPosition starting_location;
+    private final ChessPosition ending_location;
+    private final ChessPiece.PieceType type_of_promotion;
 
-    public ChessMove(ChessPosition startPosition, ChessPosition endPosition, ChessPiece.PieceType promotionPiece) {
-        this.startPosition = startPosition;
-        this.endPosition = endPosition;
-        this.promotionPiece = promotionPiece;
+    public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
+                     ChessPiece.PieceType promotionPiece) {
+        this.starting_location = startPosition;
+        this.ending_location = endPosition;
+        this.type_of_promotion = promotionPiece;
     }
 
     public ChessPosition getStartPosition() {
-        return startPosition;
+        return starting_location;
     }
 
     public ChessPosition getEndPosition() {
-        return endPosition;
+        return ending_location;
     }
 
     public ChessPiece.PieceType getPromotionPiece() {
-        return promotionPiece;
+        return type_of_promotion;
     }
 
     @Override
@@ -34,13 +36,13 @@ public class ChessMove {
             return false;
         }
         ChessMove chessMove = (ChessMove) o;
-        return Objects.equals(startPosition, chessMove.startPosition)
-                && Objects.equals(endPosition, chessMove.endPosition)
-                && promotionPiece == chessMove.promotionPiece;
+        return Objects.equals(starting_location, chessMove.starting_location)
+                && Objects.equals(ending_location, chessMove.ending_location)
+                && type_of_promotion == chessMove.type_of_promotion;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(startPosition, endPosition, promotionPiece);
+        return Objects.hash(starting_location, ending_location, type_of_promotion);
     }
 }

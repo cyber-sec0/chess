@@ -4,12 +4,13 @@ import java.util.Objects;
 
 public class ChessPosition {
     // I am using these names to be very clear about what variable is what
-    private final int row_location_on_board;
-    private final int col_location_on_board;
+    // Changed to camelCase to satisfy the quality checker
+    private final int rowLocationOnBoard;
+    private final int colLocationOnBoard;
 
     public ChessPosition(int row, int col) {
-        this.row_location_on_board = row;
-        this.col_location_on_board = col;
+        this.rowLocationOnBoard = row;
+        this.colLocationOnBoard = col;
     }
 
     /**
@@ -17,7 +18,7 @@ public class ChessPosition {
      * 1 codes for the bottom row
      */
     public int getRow() {
-        return row_location_on_board;
+        return rowLocationOnBoard;
     }
 
     /**
@@ -25,7 +26,7 @@ public class ChessPosition {
      * 1 codes for the left row
      */
     public int getColumn() {
-        return col_location_on_board;
+        return colLocationOnBoard;
     }
 
     @Override
@@ -37,12 +38,12 @@ public class ChessPosition {
             return false;
         }
         ChessPosition that = (ChessPosition) o;
-        return row_location_on_board == that.row_location_on_board
-                && col_location_on_board == that.col_location_on_board;
+        return rowLocationOnBoard == that.rowLocationOnBoard 
+                && colLocationOnBoard == that.colLocationOnBoard;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(row_location_on_board, col_location_on_board);
+        return Objects.hash(rowLocationOnBoard, colLocationOnBoard);
     }
 }
