@@ -5,35 +5,48 @@ import java.util.Collection;
 
 public abstract class SlidingMovesCalculator implements PieceMovesCalculator {
 
-    protected Collection<ChessMove> calculateSlidingMoves(ChessBoard board, ChessPosition myPosition,
-                                                          ChessPiece piece, int[][] directions) {
-        Collection<ChessMove> moves = new ArrayList<>();
+    /*
+     * This method is a helper for pieces that slide (Rook, Bishop, Queen).
+     * It prevents code duplication which is bad for security and maintenance.
+     * Iterate through the directions until a wall or another piece hits.
+     */
+    protected Collection<ChessMove> runSlidingLogic(ChessBoard theBoard, ChessPosition myPosition,
+                                                    ChessPiece myPiece, int[][] searchDirections) {
 
-        for (int[] dir : directions) {
-            int row = myPosition.getRow();
-            int col = myPosition.getColumn();
+        Collection<ChessMove> validMoveList = new ArrayList<>();
 
+        for (int[] currentDirection : searchDirections) {
+            int currentRowCheck = myPosition.getRow();
+            int currentColCheck = myPosition.getColumn();
+
+            // Loop forever until we explicitly break
             while (true) {
-                row += dir[0];
-                col += dir[1];
+                currentRowCheck += currentDirection[0];
+                currentColCheck += currentDirection[1];
 
-                if (row < 1 || row > 8 || col < 1 || col > 8) {
-                    break; // Off board
+                // Boundary Check: If outside the board, must stop immediately
+                if (currentRowCheck < 1 || currentRowCheck > 8
+                        || currentColCheck < 1 || currentColCheck > 8) {
+                    break;
                 }
 
-                ChessPosition newPos = new ChessPosition(row, col);
-                ChessPiece pieceAtPos = board.getPiece(newPos);
+                ChessPosition potentialSpot = new ChessPosition(currentRowCheck, currentColCheck);
+                ChessPiece pieceAtDestination = theBoard.getPiece(potentialSpot);
 
-                if (pieceAtPos == null) {
-                    moves.add(new ChessMove(myPosition, newPos, null));
+                if (pieceAtDestination == null) {
+                    // The path is clear, so add this move
+                    validMoveList.add(new ChessMove(myPosition, potentialSpot, null));
                 } else {
-                    if (pieceAtPos.getTeamColor() != piece.getTeamColor()) {
-                        moves.add(new ChessMove(myPosition, newPos, null)); // Capture
+                    // There is a piece here. Check if it is friend or foe.
+                    if (pieceAtDestination.getTeamColor() != myPiece.getTeamColor()) {
+                        // It is an enemy, so capture it, but cannot go further
+                        validMoveList.add(new ChessMove(myPosition, potentialSpot, null));
                     }
-                    break; // Blocked
+                    // If it's a friend or enemy, we are blocked either way
+                    break;
                 }
             }
         }
-        return moves;
+        return validMoveList;
     }
 }
