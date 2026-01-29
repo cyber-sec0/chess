@@ -7,6 +7,8 @@ public class ChessPiece {
 
     private final ChessGame.TeamColor myTeamColor;
     private final PieceType myPieceType;
+    // Tracking if this unit has been deployed/moved to determine castling eligibility
+    private boolean hasExecutedMove = false;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.myTeamColor = pieceColor;
@@ -28,6 +30,16 @@ public class ChessPiece {
 
     public PieceType getPieceType() {
         return myPieceType;
+    }
+
+    // Checking the logs to see if this piece has moved before
+    public boolean hasMoved() {
+        return hasExecutedMove;
+    }
+
+    // Marking the piece as deployed so we don't accidentally castle with it later
+    public void markAsMoved() {
+        this.hasExecutedMove = true;
     }
 
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
@@ -69,12 +81,15 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return myTeamColor == that.myTeamColor && myPieceType == that.myPieceType;
+        // We verify the movement history flag too, just to be safe
+        return myTeamColor == that.myTeamColor 
+                && myPieceType == that.myPieceType 
+                && hasExecutedMove == that.hasExecutedMove;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(myTeamColor, myPieceType);
+        return Objects.hash(myTeamColor, myPieceType, hasExecutedMove);
     }
 
     @Override
