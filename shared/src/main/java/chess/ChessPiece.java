@@ -3,6 +3,10 @@ package chess;
 import java.util.Collection;
 import java.util.Objects;
 
+/**
+ * Represents a single unit on the board.
+ * It holds the team affiliation and the classification of the piece.
+ */
 public class ChessPiece {
 
     private final ChessGame.TeamColor myTeamColor;
@@ -11,8 +15,8 @@ public class ChessPiece {
     private boolean hasExecutedMove = false;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
-        this.myTeamColor = pieceColor;
-        this.myPieceType = type;
+        this.squadIdentifier = pieceColor;
+        this.unitClassification = type;
     }
 
     public enum PieceType {
@@ -25,11 +29,11 @@ public class ChessPiece {
     }
 
     public ChessGame.TeamColor getTeamColor() {
-        return myTeamColor;
+        return squadIdentifier;
     }
 
     public PieceType getPieceType() {
-        return myPieceType;
+        return unitClassification;
     }
 
     // Checking the logs to see if this piece has moved before
@@ -46,30 +50,50 @@ public class ChessPiece {
         // Using an interface here to allow polymorphism for the movement logic
         PieceMovesCalculator movementCalculator;
 
-        switch (myPieceType) {
+    /**
+     * Marks the unit as having executed a maneuver.
+     * Once marked, this cannot be undone (logs are immutable).
+     */
+    public void markAsMoved() {
+        this.hasExecutedMove = true;
+    }
+
+    /**
+     * This method delegates the movement logic to a specialized calculator.
+     * It uses polymorphism to determine the correct algorithm for the piece type.
+     *
+     * @param board The current state of the game grid
+     * @param myPosition The current coordinates of this unit
+     * @return A collection of valid moves authorized for this unit
+     */
+    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+        PieceMovesCalculator securityCalculator;
+
+        // Switching the logic based on the unit classification
+        switch (unitClassification) {
             case KING:
-                movementCalculator = new KingMovesCalculator();
+                securityCalculator = new KingMovesCalculator();
                 break;
             case ROOK:
-                movementCalculator = new RookMovesCalculator();
+                securityCalculator = new RookMovesCalculator();
                 break;
             case BISHOP:
-                movementCalculator = new BishopMovesCalculator();
+                securityCalculator = new BishopMovesCalculator();
                 break;
             case KNIGHT:
-                movementCalculator = new KnightMovesCalculator();
+                securityCalculator = new KnightMovesCalculator();
                 break;
             case QUEEN:
-                movementCalculator = new QueenMovesCalculator();
+                securityCalculator = new QueenMovesCalculator();
                 break;
             case PAWN:
-                movementCalculator = new PawnMovesCalculator();
+                securityCalculator = new PawnMovesCalculator();
                 break;
             default:
-                throw new RuntimeException("Error: Unknown piece type detected!");
+                throw new RuntimeException("Error: Unauthorized unit type detected in system.");
         }
 
-        return movementCalculator.calculateMoves(board, myPosition, this);
+        return securityCalculator.calculateMoves(board, myPosition, this);
     }
 
     @Override
@@ -94,6 +118,6 @@ public class ChessPiece {
 
     @Override
     public String toString() {
-        return "ChessPiece{" + "color=" + myTeamColor + ", type=" + myPieceType + '}';
+        return "Unit[" + squadIdentifier + ":" + unitClassification + "]";
     }
 }

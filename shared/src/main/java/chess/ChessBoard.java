@@ -2,9 +2,13 @@ package chess;
 
 import java.util.Arrays;
 
+/**
+ * This class manages the 8x8 grid matrix.
+ * It is responsible for adding, retrieving, and resetting the game state.
+ */
 public class ChessBoard {
-    // This matrix stores the pieces. 8x8 is standard for chess.
-    private ChessPiece[][] boardStorageMatrix = new ChessPiece[8][8];
+    // The matrix that holds the references to all active units
+    private ChessPiece[][] gridMatrix = new ChessPiece[8][8];
 
     public void addPiece(ChessPosition position, ChessPiece piece) {
         // Must subtract 1 because computer arrays start at 0 but chess starts at 1
@@ -12,7 +16,7 @@ public class ChessBoard {
     }
 
     public ChessPiece getPiece(ChessPosition position) {
-        return boardStorageMatrix[position.getRow() - 1][position.getColumn() - 1];
+        return gridMatrix[position.getRow() - 1][position.getColumn() - 1];
     }
 
     /**
@@ -45,29 +49,32 @@ public class ChessBoard {
      * (How the game of chess usually starts)
      */
     public void resetBoard() {
-        // Clearing the old board to make sure no artifacts remain
-        boardStorageMatrix = new ChessPiece[8][8];
+        // Re-initializing the memory for the board
+        gridMatrix = new ChessPiece[8][8];
 
-        ChessGame.TeamColor whiteTeam = ChessGame.TeamColor.WHITE;
-        ChessGame.TeamColor blackTeam = ChessGame.TeamColor.BLACK;
+        ChessGame.TeamColor whiteSquad = ChessGame.TeamColor.WHITE;
+        ChessGame.TeamColor blackSquad = ChessGame.TeamColor.BLACK;
 
-        // Putting the pawns in the front lines (rows 2 and 7)
+        // Deploying the pawns to the second and seventh ranks
+        // Loop iterates through all columns from 1 to 8
         for (int i = 1; i <= 8; i++) {
-            addPiece(new ChessPosition(2, i), new ChessPiece(whiteTeam, ChessPiece.PieceType.PAWN));
-            addPiece(new ChessPosition(7, i), new ChessPiece(blackTeam, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(2, i), new ChessPiece(whiteSquad, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(7, i), new ChessPiece(blackSquad, ChessPiece.PieceType.PAWN));
         }
 
-        // Using an array to organize the powerful pieces in the back
-        ChessPiece.PieceType[] noblePieces = {
+        // Defining the order of the noble units for the back ranks
+        ChessPiece.PieceType[] nobleUnitOrder = {
                 ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP,
                 ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KING, ChessPiece.PieceType.BISHOP,
                 ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.ROOK
         };
 
-        // Using a loop to organize the powerful pieces in the back
+        // Deploying the noble units to the first and eighth ranks
         for (int i = 0; i < 8; i++) {
-            addPiece(new ChessPosition(1, i + 1), new ChessPiece(whiteTeam, noblePieces[i]));
-            addPiece(new ChessPosition(8, i + 1), new ChessPiece(blackTeam, noblePieces[i]));
+            // Deploying White units at the bottom (Row 1)
+            addPiece(new ChessPosition(1, i + 1), new ChessPiece(whiteSquad, nobleUnitOrder[i]));
+            // Deploying Black units at the top (Row 8)
+            addPiece(new ChessPosition(8, i + 1), new ChessPiece(blackSquad, nobleUnitOrder[i]));
         }
     }
 
@@ -80,11 +87,16 @@ public class ChessBoard {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        return Arrays.deepEquals(boardStorageMatrix, that.boardStorageMatrix);
+        return Arrays.deepEquals(gridMatrix, that.gridMatrix);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(boardStorageMatrix);
+        return Arrays.deepHashCode(gridMatrix);
+    }
+
+    @Override
+    public String toString() {
+        return "BoardMatrix" + Arrays.deepToString(gridMatrix);
     }
 }
