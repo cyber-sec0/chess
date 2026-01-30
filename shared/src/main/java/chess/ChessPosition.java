@@ -2,30 +2,40 @@ package chess;
 
 import java.util.Objects;
 
+/**
+ * This class is responsible for holding the geolocation of the piece on the grid system.
+ * It is critical to keep the row and column data integrity.
+ */
 public class ChessPosition {
-    // I am using these names to be very clear about what variable is what
-    private final int rowLocationOnBoard;
-    private final int colLocationOnBoard;
+
+    // Storing the vertical coordinate (1-8)
+    private final int verticalIndexLocation;
+    // Storing the horizontal coordinate (1-8)
+    private final int horizontalIndexLocation;
 
     public ChessPosition(int row, int col) {
-        this.rowLocationOnBoard = row;
-        this.colLocationOnBoard = col;
+        this.verticalIndexLocation = row;
+        this.horizontalIndexLocation = col;
     }
 
     /**
-     * @return which row this position is in
-     * 1 codes for the bottom row
+     * Retrieves the row number.
+     * The system uses 1-based indexing for the grid.
+     *
+     * @return the integer value of the row
      */
     public int getRow() {
-        return rowLocationOnBoard;
+        return verticalIndexLocation;
     }
 
     /**
-     * @return which column this position is in
-     * 1 codes for the left row
+     * Retrieves the column number.
+     * The system uses 1-based indexing for the grid.
+     *
+     * @return the integer value of the column
      */
     public int getColumn() {
-        return colLocationOnBoard;
+        return horizontalIndexLocation;
     }
 
     @Override
@@ -37,12 +47,17 @@ public class ChessPosition {
             return false;
         }
         ChessPosition that = (ChessPosition) o;
-        return rowLocationOnBoard == that.rowLocationOnBoard 
-                && colLocationOnBoard == that.colLocationOnBoard;
+        return verticalIndexLocation == that.verticalIndexLocation
+                && horizontalIndexLocation == that.horizontalIndexLocation;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(rowLocationOnBoard, colLocationOnBoard);
+        return Objects.hash(verticalIndexLocation, horizontalIndexLocation);
+    }
+
+    @Override
+    public String toString() {
+        return "Position[" + verticalIndexLocation + "," + horizontalIndexLocation + "]";
     }
 }
