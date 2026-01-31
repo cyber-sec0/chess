@@ -6,30 +6,30 @@ import java.util.Collection;
 public class KingMovesCalculator implements PieceMovesCalculator {
     @Override
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
-        Collection<ChessMove> safeMoves = new ArrayList<>();
+        Collection<ChessMove> securityZones = new ArrayList<>();
 
-        // The king can move 1 step in any direction
-        int[][] kingWalkOptions = {
+        // The King unit has limited mobility (1 step radius)
+        int[][] possibleSteps = {
                 {1, 0}, {-1, 0}, {0, 1}, {0, -1},
                 {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
         };
 
-        for (int[] step : kingWalkOptions) {
-            int stepRow = myPosition.getRow() + step[0];
-            int stepCol = myPosition.getColumn() + step[1];
+        for (int[] step : possibleSteps) {
+            int nextRow = myPosition.getRow() + step[0];
+            int nextCol = myPosition.getColumn() + step[1];
 
-            // Strictly check bounds to ensure king safety from falling off board
-            if (stepRow >= 1 && stepRow <= 8 && stepCol >= 1 && stepCol <= 8) {
-                ChessPosition newPos = new ChessPosition(stepRow, stepCol);
-                ChessPiece occupant = board.getPiece(newPos);
+            // Validation of the board boundaries is mandatory
+            if (nextRow >= 1 && nextRow <= 8 && nextCol >= 1 && nextCol <= 8) {
+                ChessPosition targetPosition = new ChessPosition(nextRow, nextCol);
+                ChessPiece occupiedSpace = board.getPiece(targetPosition);
 
-                // If space is null (empty) or has enemy, go!
-                if (occupant == null || occupant.getTeamColor() != piece.getTeamColor()) {
-                    safeMoves.add(new ChessMove(myPosition, newPos, null));
+                // Checking if the space is empty or occupied by a hostile unit
+                if (occupiedSpace == null || occupiedSpace.getTeamColor() != piece.getTeamColor()) {
+                    securityZones.add(new ChessMove(myPosition, targetPosition, null));
                 }
             }
         }
 
-        return safeMoves;
+        return securityZones;
     }
 }
