@@ -3,80 +3,94 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * Calculates the complex movement logic for Pawns.
+ * Includes directional movement, initial double-step, captures, and promotion protocols.
+ */
 public class PawnMovesCalculator implements PieceMovesCalculator {
     @Override
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
-        Collection<ChessMove> pawnMoves = new ArrayList<>();
+        Collection<ChessMove> infantryMoves = new ArrayList<>();
 
-        int currentRow = myPosition.getRow();
-        int currentCol = myPosition.getColumn();
+        int currentRowIndex = myPosition.getRow();
+        int currentColIndex = myPosition.getColumn();
 
-        // Determining direction based on team color
-        int walkDirection;
-        int startingRow;
-        int promotionZoneRow;
+        // Determining forward direction vector based on team allegiance
+        int forwardVector;
+        int startingRank;
+        int promotionThresholdRank;
 
         if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-            walkDirection = 1; // White goes up
-            startingRow = 2;
-            promotionZoneRow = 8;
+            forwardVector = 1; // White advances positively
+            startingRank = 2;
+            promotionThresholdRank = 8;
         } else {
-            walkDirection = -1; // Black goes down
-            startingRow = 7;
-            promotionZoneRow = 1;
+            forwardVector = -1; // Black advances negatively
+            startingRank = 7;
+            promotionThresholdRank = 1;
         }
 
-        // Logic 1: Walking Forward 1 Step
-        int nextRow = currentRow + walkDirection;
+        // Logic Block 1: Standard Advance (1 square forward)
+        int nextRow = currentRowIndex + forwardVector;
+        // Check bounds before proceeding
         if (nextRow >= 1 && nextRow <= 8) {
-            ChessPosition oneStepPos = new ChessPosition(nextRow, currentCol);
-            // Only walk forward if nobody is blocking
-            if (board.getPiece(oneStepPos) == null) {
-                boolean isPromoting = (nextRow == promotionZoneRow);
-                registerPawnMove(myPosition, oneStepPos, isPromoting, pawnMoves);
+            ChessPosition singleStepPosition = new ChessPosition(nextRow, currentColIndex);
 
-                // Logic 2: Walking Forward 2 Steps (only from start)
-                if (currentRow == startingRow) {
-                    int doubleStepRow = currentRow + (walkDirection * 2);
-                    ChessPosition doubleStepPos = new ChessPosition(doubleStepRow, currentCol);
-                    // Both steps must be clear
-                    if (board.getPiece(doubleStepPos) == null) {
-                        pawnMoves.add(new ChessMove(myPosition, doubleStepPos, null));
+            // Pawns cannot capture forward, the path must be null
+            if (board.getPiece(singleStepPosition) == null) {
+                boolean promotionTriggered = (nextRow == promotionThresholdRank);
+                processPawnMove(myPosition, singleStepPosition, promotionTriggered, infantryMoves);
+
+                // Logic Block 2: Initial Charge (2 squares forward)
+                // Only allowed if currently at starting rank
+                if (currentRowIndex == startingRank) {
+                    int doubleStepRow = currentRowIndex + (forwardVector * 2);
+                    ChessPosition doubleStepPosition = new ChessPosition(doubleStepRow, currentColIndex);
+
+                    // Both the first and second square must be clear
+                    if (board.getPiece(doubleStepPosition) == null) {
+                        infantryMoves.add(new ChessMove(myPosition, doubleStepPosition, null));
                     }
                 }
             }
         }
 
-        // Logic 3: Capturing Enemies (Diagonals)
-        int[] captureOffsets = {-1, 1}; // Left and Right columns
-        for (int offset : captureOffsets) {
-            int attackCol = currentCol + offset;
-            if (attackCol >= 1 && attackCol <= 8 && nextRow >= 1 && nextRow <= 8) {
-                ChessPosition attackPos = new ChessPosition(nextRow, attackCol);
-                ChessPiece enemy = board.getPiece(attackPos);
+        // Logic Block 3: Diagonal Engagement (Capturing)
+        int[] attackOffsets = {-1, 1}; // Checking left and right diagonals
+        for (int offset : attackOffsets) {
+            int targetCol = currentColIndex + offset;
 
-                // Verify if there is a target and if it is an enemy
-                if (enemy != null && enemy.getTeamColor() != piece.getTeamColor()) {
-                    boolean isPromoting = (nextRow == promotionZoneRow);
-                    registerPawnMove(myPosition, attackPos, isPromoting, pawnMoves);
+            // Boundary validation for column and row
+            if (targetCol >= 1 && targetCol <= 8 && nextRow >= 1 && nextRow <= 8) {
+                ChessPosition attackTarget = new ChessPosition(nextRow, targetCol);
+                ChessPiece targetUnit = board.getPiece(attackTarget);
+
+                // Attack is only valid if a unit exists and is hostile
+                if (targetUnit != null && targetUnit.getTeamColor() != piece.getTeamColor()) {
+                    boolean promotionTriggered = (nextRow == promotionThresholdRank);
+                    processPawnMove(myPosition, attackTarget, promotionTriggered, infantryMoves);
                 }
             }
         }
 
-        return pawnMoves;
+        return infantryMoves;
     }
 
-    // Helper method to handle the promotion verbosity
-    private void registerPawnMove(ChessPosition start, ChessPosition end,
-                                  boolean promote, Collection<ChessMove> moves) {
-        if (promote) {
-            // If promoting, become any of the following pieces
-            moves.add(new ChessMove(start, end, ChessPiece.PieceType.QUEEN));
-            moves.add(new ChessMove(start, end, ChessPiece.PieceType.BISHOP));
-            moves.add(new ChessMove(start, end, ChessPiece.PieceType.ROOK));
-            moves.add(new ChessMove(start, end, ChessPiece.PieceType.KNIGHT));
+    /**
+     * Helper to handle the verbosity of adding promotion variations.
+     * If promotion is active, we must generate 4 distinct moves.
+     */
+    private void processPawnMove(ChessPosition start, ChessPosition end,
+                                 boolean isPromoting, Collection<ChessMove> moveCollection) {
+        if (isPromoting) {
+            // Generating all possible promotion outcomes
+            moveCollection.add(new ChessMove(start, end, ChessPiece.PieceType.QUEEN));
+            moveCollection.add(new ChessMove(start, end, ChessPiece.PieceType.BISHOP));
+            moveCollection.add(new ChessMove(start, end, ChessPiece.PieceType.ROOK));
+            moveCollection.add(new ChessMove(start, end, ChessPiece.PieceType.KNIGHT));
         } else {
-            moves.add(new ChessMove(start, end, null));
+            // Standard move with no promotion
+            moveCollection.add(new ChessMove(start, end, null));
         }
     }
 }
