@@ -37,7 +37,7 @@ public class ChessPiece {
         return hasExecutedMove;
     }
 
-    // Marking the piece as deployed so we don't accidentally castle with it later
+    // Marking the piece as deployed so  don't accidentally castle with it later
     public void markAsMoved() {
         this.hasExecutedMove = true;
     }
@@ -81,9 +81,9 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        // IMPORTANT FIX: We ignore 'hasExecutedMove' for equality checks.
+        // Ignore 'hasExecutedMove' for equality checks.
         // The tests generate fresh boards where pieces haven't moved.
-        // If we compare this flag, a moved King won't match a fresh King, causing test failures.
+        // If compare this flag, a moved King won't match a fresh King, causing test failures.
         return myTeamColor == that.myTeamColor && myPieceType == that.myPieceType;
     }
 

@@ -8,7 +8,7 @@ public class ChessGame {
 
     private TeamColor currentTeamTurn;
     private ChessBoard currentGameBoard;
-    // We track the last move to validate En Passant (it expires after 1 turn)
+    // Track the last move to validate En Passant (it expires after 1 turn)
     private ChessMove lastCommittedMove;
 
     public ChessGame() {
@@ -55,7 +55,7 @@ public class ChessGame {
         }
 
         // EXECUTION PHASE
-        // If we get here, the move is valid. We commit it to the database (board).
+        // If we get here, the move is valid. Commit it to the database (board).
 
         // Handling En Passant Kill (removing the enemy pawn that was passed)
         if (movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
@@ -69,7 +69,7 @@ public class ChessGame {
 
         // Moving the actual piece
         ChessPiece finalPiece = movingPiece;
-        // If promotion happening, we swap the pawn for the new upgraded unit
+        // If promotion happening, swap the pawn for the new upgraded unit
         if (move.getPromotionPiece() != null) {
             finalPiece = new ChessPiece(currentTeamTurn, move.getPromotionPiece());
         }
@@ -135,16 +135,8 @@ public class ChessGame {
 
         for (int r = 1; r <= 8; r++) {
             for (int c = 1; c <= 8; c++) {
-                ChessPosition scannerPos = new ChessPosition(r, c);
-                ChessPiece foundPiece = currentGameBoard.getPiece(scannerPos);
-
-                if (foundPiece != null && foundPiece.getTeamColor() == enemyColor) {
-                    Collection<ChessMove> threats = foundPiece.pieceMoves(currentGameBoard, scannerPos);
-                    for (ChessMove threat : threats) {
-                        if (threat.getEndPosition().equals(kingPos)) {
-                            return true; // Threat detected!
-                        }
-                    }
+                if (checkPieceThreat(r, c, enemyColor, kingPos)) {
+                    return true;
                 }
             }
         }
@@ -177,6 +169,21 @@ public class ChessGame {
 
     // --- Private Helper Methods (The internal "private" logic) ---
 
+    private boolean checkPieceThreat(int row, int col, TeamColor enemyColor, ChessPosition kingPos) {
+        ChessPosition scannerPos = new ChessPosition(row, col);
+        ChessPiece foundPiece = currentGameBoard.getPiece(scannerPos);
+
+        if (foundPiece != null && foundPiece.getTeamColor() == enemyColor) {
+            Collection<ChessMove> threats = foundPiece.pieceMoves(currentGameBoard, scannerPos);
+            for (ChessMove threat : threats) {
+                if (threat.getEndPosition().equals(kingPos)) {
+                    return true; // Threat detected!
+                }
+            }
+        }
+        return false;
+    }
+
     private boolean hasNoValidMoves(TeamColor teamColor) {
         for (int r = 1; r <= 8; r++) {
             for (int c = 1; c <= 8; c++) {
@@ -185,7 +192,7 @@ public class ChessGame {
                 if (piece != null && piece.getTeamColor() == teamColor) {
                     Collection<ChessMove> moves = validMoves(pos);
                     if (moves != null && !moves.isEmpty()) {
-                        return false; // We found an escape route
+                        return false; // Found an escape route
                     }
                 }
             }
@@ -345,7 +352,7 @@ public class ChessGame {
         }
         ChessGame chessGame = (ChessGame) o;
         // Comparing the board state and the turn.
-        // We verify the turn first because it's a cheaper operation.
+        // Verify the turn first because it's a cheaper operation.
         return currentTeamTurn == chessGame.currentTeamTurn
                 && Objects.equals(currentGameBoard, chessGame.currentGameBoard);
     }

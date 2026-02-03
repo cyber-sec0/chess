@@ -19,7 +19,7 @@ public abstract class SlidingMovesCalculator implements PieceMovesCalculator {
             int currentRowCheck = myPosition.getRow();
             int currentColCheck = myPosition.getColumn();
 
-            // Loop forever until we explicitly break
+            // Loop forever until explicitly break
             while (true) {
                 currentRowCheck += currentDirection[0];
                 currentColCheck += currentDirection[1];
@@ -42,7 +42,7 @@ public abstract class SlidingMovesCalculator implements PieceMovesCalculator {
                         // It is an enemy, so capture it, but cannot go further
                         validMoveList.add(new ChessMove(myPosition, potentialSpot, null));
                     }
-                    // If it's a friend or enemy, we are blocked either way
+                    // If it's a friend or enemy, are blocked either way
                     break;
                 }
             }

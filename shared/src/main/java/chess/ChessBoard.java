@@ -7,7 +7,7 @@ public class ChessBoard {
     private ChessPiece[][] boardStorageMatrix = new ChessPiece[8][8];
 
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        // We must subtract 1 because computer arrays start at 0 but chess starts at 1
+        // Must subtract 1 because computer arrays start at 0 but chess starts at 1
         boardStorageMatrix[position.getRow() - 1][position.getColumn() - 1] = piece;
     }
 
@@ -17,7 +17,7 @@ public class ChessBoard {
 
     /**
      * This creates a sandbox clone of the board.
-     * We need this to simulate moves without corrupting the main game state.
+     * Need this to simulate moves without corrupting the main game state.
      * It's like a virtual machine for testing threats.
      */
     public ChessBoard makeDeepCopy() {
