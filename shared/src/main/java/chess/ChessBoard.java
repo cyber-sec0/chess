@@ -2,26 +2,22 @@ package chess;
 
 import java.util.Arrays;
 
-/**
- * This class manages the 8x8 grid matrix.
- * It is responsible for adding, retrieving, and resetting the game state.
- */
 public class ChessBoard {
-    // The matrix that holds the references to all active units
-    private ChessPiece[][] gridMatrix = new ChessPiece[8][8];
+    // This matrix stores the pieces. 8x8 is standard for chess.
+    private ChessPiece[][] boardStorageMatrix = new ChessPiece[8][8];
 
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        // Must subtract 1 because computer arrays start at 0 but chess starts at 1
+        // We must subtract 1 because computer arrays start at 0 but chess starts at 1
         boardStorageMatrix[position.getRow() - 1][position.getColumn() - 1] = piece;
     }
 
     public ChessPiece getPiece(ChessPosition position) {
-        return gridMatrix[position.getRow() - 1][position.getColumn() - 1];
+        return boardStorageMatrix[position.getRow() - 1][position.getColumn() - 1];
     }
 
     /**
      * This creates a sandbox clone of the board.
-     * Need this to simulate moves without corrupting the main game state.
+     * We need this to simulate moves without corrupting the main game state.
      * It's like a virtual machine for testing threats.
      */
     public ChessBoard makeDeepCopy() {
@@ -49,32 +45,29 @@ public class ChessBoard {
      * (How the game of chess usually starts)
      */
     public void resetBoard() {
-        // Re-initializing the memory for the board
-        gridMatrix = new ChessPiece[8][8];
+        // Clearing the old board to make sure no artifacts remain
+        boardStorageMatrix = new ChessPiece[8][8];
 
-        ChessGame.TeamColor whiteSquad = ChessGame.TeamColor.WHITE;
-        ChessGame.TeamColor blackSquad = ChessGame.TeamColor.BLACK;
+        ChessGame.TeamColor whiteTeam = ChessGame.TeamColor.WHITE;
+        ChessGame.TeamColor blackTeam = ChessGame.TeamColor.BLACK;
 
-        // Deploying the pawns to the second and seventh ranks
-        // Loop iterates through all columns from 1 to 8
+        // Putting the pawns in the front lines (rows 2 and 7)
         for (int i = 1; i <= 8; i++) {
-            addPiece(new ChessPosition(2, i), new ChessPiece(whiteSquad, ChessPiece.PieceType.PAWN));
-            addPiece(new ChessPosition(7, i), new ChessPiece(blackSquad, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(2, i), new ChessPiece(whiteTeam, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(7, i), new ChessPiece(blackTeam, ChessPiece.PieceType.PAWN));
         }
 
-        // Defining the order of the noble units for the back ranks
-        ChessPiece.PieceType[] nobleUnitOrder = {
+        // Using an array to organize the powerful pieces in the back
+        ChessPiece.PieceType[] noblePieces = {
                 ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP,
                 ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KING, ChessPiece.PieceType.BISHOP,
                 ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.ROOK
         };
 
-        // Deploying the noble units to the first and eighth ranks
+        // Using a loop to organize the powerful pieces in the back
         for (int i = 0; i < 8; i++) {
-            // Deploying White units at the bottom (Row 1)
-            addPiece(new ChessPosition(1, i + 1), new ChessPiece(whiteSquad, nobleUnitOrder[i]));
-            // Deploying Black units at the top (Row 8)
-            addPiece(new ChessPosition(8, i + 1), new ChessPiece(blackSquad, nobleUnitOrder[i]));
+            addPiece(new ChessPosition(1, i + 1), new ChessPiece(whiteTeam, noblePieces[i]));
+            addPiece(new ChessPosition(8, i + 1), new ChessPiece(blackTeam, noblePieces[i]));
         }
     }
 
@@ -87,16 +80,11 @@ public class ChessBoard {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        return Arrays.deepEquals(gridMatrix, that.gridMatrix);
+        return Arrays.deepEquals(boardStorageMatrix, that.boardStorageMatrix);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(gridMatrix);
-    }
-
-    @Override
-    public String toString() {
-        return "BoardMatrix" + Arrays.deepToString(gridMatrix);
+        return Arrays.deepHashCode(boardStorageMatrix);
     }
 }

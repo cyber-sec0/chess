@@ -3,10 +3,6 @@ package chess;
 import java.util.Collection;
 import java.util.Objects;
 
-/**
- * Represents a single unit on the board.
- * It holds the team affiliation and the classification of the piece.
- */
 public class ChessPiece {
 
     private final ChessGame.TeamColor myTeamColor;
@@ -15,8 +11,8 @@ public class ChessPiece {
     private boolean hasExecutedMove = false;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
-        this.squadIdentifier = pieceColor;
-        this.unitClassification = type;
+        this.myTeamColor = pieceColor;
+        this.myPieceType = type;
     }
 
     public enum PieceType {
@@ -29,11 +25,11 @@ public class ChessPiece {
     }
 
     public ChessGame.TeamColor getTeamColor() {
-        return squadIdentifier;
+        return myTeamColor;
     }
 
     public PieceType getPieceType() {
-        return unitClassification;
+        return myPieceType;
     }
 
     // Checking the logs to see if this piece has moved before
@@ -50,50 +46,30 @@ public class ChessPiece {
         // Using an interface here to allow polymorphism for the movement logic
         PieceMovesCalculator movementCalculator;
 
-    /**
-     * Marks the unit as having executed a maneuver.
-     * Once marked, this cannot be undone (logs are immutable).
-     */
-    public void markAsMoved() {
-        this.hasExecutedMove = true;
-    }
-
-    /**
-     * This method delegates the movement logic to a specialized calculator.
-     * It uses polymorphism to determine the correct algorithm for the piece type.
-     *
-     * @param board The current state of the game grid
-     * @param myPosition The current coordinates of this unit
-     * @return A collection of valid moves authorized for this unit
-     */
-    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        PieceMovesCalculator securityCalculator;
-
-        // Switching the logic based on the unit classification
-        switch (unitClassification) {
+        switch (myPieceType) {
             case KING:
-                securityCalculator = new KingMovesCalculator();
+                movementCalculator = new KingMovesCalculator();
                 break;
             case ROOK:
-                securityCalculator = new RookMovesCalculator();
+                movementCalculator = new RookMovesCalculator();
                 break;
             case BISHOP:
-                securityCalculator = new BishopMovesCalculator();
+                movementCalculator = new BishopMovesCalculator();
                 break;
             case KNIGHT:
-                securityCalculator = new KnightMovesCalculator();
+                movementCalculator = new KnightMovesCalculator();
                 break;
             case QUEEN:
-                securityCalculator = new QueenMovesCalculator();
+                movementCalculator = new QueenMovesCalculator();
                 break;
             case PAWN:
-                securityCalculator = new PawnMovesCalculator();
+                movementCalculator = new PawnMovesCalculator();
                 break;
             default:
-                throw new RuntimeException("Error: Unauthorized unit type detected in system.");
+                throw new RuntimeException("Error: Unknown piece type detected!");
         }
 
-        return securityCalculator.calculateMoves(board, myPosition, this);
+        return movementCalculator.calculateMoves(board, myPosition, this);
     }
 
     @Override
@@ -105,19 +81,20 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        // We verify the movement history flag too, just to be safe
-        return myTeamColor == that.myTeamColor 
-                && myPieceType == that.myPieceType 
-                && hasExecutedMove == that.hasExecutedMove;
+        // IMPORTANT FIX: We ignore 'hasExecutedMove' for equality checks.
+        // The tests generate fresh boards where pieces haven't moved.
+        // If we compare this flag, a moved King won't match a fresh King, causing test failures.
+        return myTeamColor == that.myTeamColor && myPieceType == that.myPieceType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(myTeamColor, myPieceType, hasExecutedMove);
+        // Hashing only the identity, not the state history
+        return Objects.hash(myTeamColor, myPieceType);
     }
 
     @Override
     public String toString() {
-        return "Unit[" + squadIdentifier + ":" + unitClassification + "]";
+        return "ChessPiece{" + "color=" + myTeamColor + ", type=" + myPieceType + '}';
     }
 }

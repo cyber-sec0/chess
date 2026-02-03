@@ -2,36 +2,29 @@ package chess;
 
 import java.util.Objects;
 
-/**
- * This class defines the protocol for moving a unit from one sector to another.
- * It also handles the special promotion authorization if the pawn reaches the end.
- */
 public class ChessMove {
-
-    // The starting sector of the unit
-    private final ChessPosition originCoordinate;
-    // The target sector for the operation
-    private final ChessPosition destinationCoordinate;
-    // The type of unit to promote to, if applicable
-    private final ChessPiece.PieceType promotionAuth;
+    // Saving the start and end to know the trajectory of the piece
+    private final ChessPosition startingLocation;
+    private final ChessPosition endingLocation;
+    private final ChessPiece.PieceType typeOfPromotion;
 
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
-        this.originCoordinate = startPosition;
-        this.destinationCoordinate = endPosition;
-        this.promotionAuth = promotionPiece;
+        this.startingLocation = startPosition;
+        this.endingLocation = endPosition;
+        this.typeOfPromotion = promotionPiece;
     }
 
     public ChessPosition getStartPosition() {
-        return originCoordinate;
+        return startingLocation;
     }
 
     public ChessPosition getEndPosition() {
-        return destinationCoordinate;
+        return endingLocation;
     }
 
     public ChessPiece.PieceType getPromotionPiece() {
-        return promotionAuth;
+        return typeOfPromotion;
     }
 
     @Override
@@ -43,18 +36,13 @@ public class ChessMove {
             return false;
         }
         ChessMove chessMove = (ChessMove) o;
-        return Objects.equals(originCoordinate, chessMove.originCoordinate)
-                && Objects.equals(destinationCoordinate, chessMove.destinationCoordinate)
-                && promotionAuth == chessMove.promotionAuth;
+        return Objects.equals(startingLocation, chessMove.startingLocation)
+                && Objects.equals(endingLocation, chessMove.endingLocation)
+                && typeOfPromotion == chessMove.typeOfPromotion;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(originCoordinate, destinationCoordinate, promotionAuth);
-    }
-
-    @Override
-    public String toString() {
-        return "Move{" + originCoordinate + " -> " + destinationCoordinate + "}";
+        return Objects.hash(startingLocation, endingLocation, typeOfPromotion);
     }
 }

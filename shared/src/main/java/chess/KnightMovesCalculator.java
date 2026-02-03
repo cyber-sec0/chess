@@ -3,37 +3,32 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 
-/**
- * Calculates the unique L-shaped movement for the Knight.
- * Unlike other units, the Knight can bypass obstacles (jump).
- */
 public class KnightMovesCalculator implements PieceMovesCalculator {
     @Override
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition, ChessPiece piece) {
-        Collection<ChessMove> tacticalJumps = new ArrayList<>();
+        Collection<ChessMove> legalMoves = new ArrayList<>();
 
-        // The specific L-shape coordinate offsets
-        int[][] jumpCoordinates = {
+        // This is the L shape moves logic.
+        int[][] jumpPatterns = {
                 {2, 1}, {2, -1}, {-2, 1}, {-2, -1},
                 {1, 2}, {1, -2}, {-1, 2}, {-1, -2}
         };
 
-        for (int[] jumpOffset : jumpCoordinates) {
-            int landingRow = myPosition.getRow() + jumpOffset[0];
-            int landingCol = myPosition.getColumn() + jumpOffset[1];
+        for (int[] jump : jumpPatterns) {
+            int targetRow = myPosition.getRow() + jump[0];
+            int targetCol = myPosition.getColumn() + jump[1];
 
-            // Verify if the landing zone is within the operational area (board)
-            if (landingRow >= 1 && landingRow <= 8 && landingCol >= 1 && landingCol <= 8) {
-                ChessPosition landingZone = new ChessPosition(landingRow, landingCol);
-                ChessPiece pieceInZone = board.getPiece(landingZone);
+            // Verifying if the jump lands inside the map (board)
+            if (targetRow >= 1 && targetRow <= 8 && targetCol >= 1 && targetCol <= 8) {
+                ChessPosition landingSpot = new ChessPosition(targetRow, targetCol);
+                ChessPiece existingPiece = board.getPiece(landingSpot);
 
-                // Knights only care about the destination status, not the path
-                // If destination is null (empty) or hostile, the move is valid
-                if (pieceInZone == null || pieceInZone.getTeamColor() != piece.getTeamColor()) {
-                    tacticalJumps.add(new ChessMove(myPosition, landingZone, null));
+                // Knights can only land if the spot is empty or has an enemy
+                if (existingPiece == null || existingPiece.getTeamColor() != piece.getTeamColor()) {
+                    legalMoves.add(new ChessMove(myPosition, landingSpot, null));
                 }
             }
         }
-        return tacticalJumps;
+        return legalMoves;
     }
 }

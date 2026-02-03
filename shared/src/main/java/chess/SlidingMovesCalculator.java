@@ -3,60 +3,50 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 
-/**
- * Abstract class to handle the logic for sliding units (Rook, Bishop, Queen).
- * This prevents code duplication which is a security risk for maintenance.
- */
 public abstract class SlidingMovesCalculator implements PieceMovesCalculator {
 
-    /**
-     * Scans the board in specific directions until a collision occurs.
-     *
-     * @param gameBoard The current grid state
-     * @param myPos The starting coordinates of the unit
-     * @param unit The unit itself
-     * @param searchVectors The array of directional vectors to scan
-     * @return A list of validated moves
+    /*
+     * This method is a helper for pieces that slide (Rook, Bishop, Queen).
+     * It prevents code duplication which is bad for security and maintenance.
+     * Iterate through the directions until a wall or another piece hits.
      */
-    protected Collection<ChessMove> scanDirectionalPath(ChessBoard gameBoard, ChessPosition myPos,
-                                                        ChessPiece unit, int[][] searchVectors) {
+    protected Collection<ChessMove> runSlidingLogic(ChessBoard theBoard, ChessPosition myPosition,
+                                                    ChessPiece myPiece, int[][] searchDirections) {
 
-        Collection<ChessMove> validatedMoves = new ArrayList<>();
+        Collection<ChessMove> validMoveList = new ArrayList<>();
 
-        // Iterating through each vector in the search array
-        for (int[] vector : searchVectors) {
-            int currentVertical = myPos.getRow();
-            int currentHorizontal = myPos.getColumn();
+        for (int[] currentDirection : searchDirections) {
+            int currentRowCheck = myPosition.getRow();
+            int currentColCheck = myPosition.getColumn();
 
-            // Infinite loop to simulate the sliding movement
-            // Logic breaks when a boundary or obstacle is hit
+            // Loop forever until we explicitly break
             while (true) {
-                currentVertical += vector[0];
-                currentHorizontal += vector[1];
+                currentRowCheck += currentDirection[0];
+                currentColCheck += currentDirection[1];
 
-                // Boundary Check: Verifying if coordinates are within the 1-8 grid
-                if (currentVertical < 1 || currentVertical > 8
-                        || currentHorizontal < 1 || currentHorizontal > 8) {
+                // Boundary Check: If outside the board, must stop immediately
+                if (currentRowCheck < 1 || currentRowCheck > 8
+                        || currentColCheck < 1 || currentColCheck > 8) {
                     break;
                 }
 
-                ChessPosition targetPos = new ChessPosition(currentVertical, currentHorizontal);
-                ChessPiece obstacle = gameBoard.getPiece(targetPos);
+                ChessPosition potentialSpot = new ChessPosition(currentRowCheck, currentColCheck);
+                ChessPiece pieceAtDestination = theBoard.getPiece(potentialSpot);
 
-                if (obstacle == null) {
-                    // Sector is clear, authorize movement
-                    validatedMoves.add(new ChessMove(myPos, targetPos, null));
+                if (pieceAtDestination == null) {
+                    // The path is clear, so add this move
+                    validMoveList.add(new ChessMove(myPosition, potentialSpot, null));
                 } else {
-                    // Collision detected. Checking identification of the obstacle.
-                    if (obstacle.getTeamColor() != unit.getTeamColor()) {
-                        // Enemy detected. Capture authorized.
-                        validatedMoves.add(new ChessMove(myPos, targetPos, null));
+                    // There is a piece here. Check if it is friend or foe.
+                    if (pieceAtDestination.getTeamColor() != myPiece.getTeamColor()) {
+                        // It is an enemy, so capture it, but cannot go further
+                        validMoveList.add(new ChessMove(myPosition, potentialSpot, null));
                     }
-                    // Path blocked by either friend or foe. Terminate scan.
+                    // If it's a friend or enemy, we are blocked either way
                     break;
                 }
             }
         }
-        return validatedMoves;
+        return validMoveList;
     }
 }
