@@ -31,6 +31,7 @@ public class UserServiceTests {
         userServiceLogic = new UserService(memoryUserDaoTool, memoryAuthDaoTool);
     }
 
+    // This test verifies if the registration process is capable to create a valid user with the correct username information.
     @Test
     public void registerSuccessTest() throws DataAccessException {
         UserData userInformation = new UserData("benjamim", "password123", "ben@byu.edu");
@@ -39,6 +40,7 @@ public class UserServiceTests {
         Assertions.assertEquals("benjamim", resultData.username());
     }
 
+    // Ensure that the system prevents the creation of a user that already exists in the memory database.
     @Test
     public void registerFailDuplicateTest() throws DataAccessException {
         UserData userInformation = new UserData("benjamim", "password123", "ben@byu.edu");
@@ -46,6 +48,7 @@ public class UserServiceTests {
         Assertions.assertThrows(DataAccessException.class, () -> userServiceLogic.register(userInformation));
     }
 
+    // This function checks if the login feature returns a valid token when the credentials are completely correct.
     @Test
     public void loginSuccessTest() throws DataAccessException {
         UserData userInformation = new UserData("benjamim", "password123", "ben@byu.edu");
@@ -54,6 +57,7 @@ public class UserServiceTests {
         Assertions.assertNotNull(loginResultData.authToken());
     }
 
+    // It is important to verify that the system denies access when the password provided does not match the stored one.
     @Test
     public void loginFailWrongPasswordTest() throws DataAccessException {
         UserData userInformation = new UserData("benjamim", "password123", "ben@byu.edu");
@@ -62,6 +66,7 @@ public class UserServiceTests {
         Assertions.assertThrows(DataAccessException.class, () -> userServiceLogic.login(wrongPassUserInformation));
     }
 
+    // This test ensures that after the logout the authentication token is removed from the volatile memory storage.
     @Test
     public void logoutSuccessTest() throws DataAccessException {
         UserData userInformation = new UserData("benjamim", "password123", "ben@byu.edu");
@@ -70,6 +75,7 @@ public class UserServiceTests {
         Assertions.assertNull(memoryAuthDaoTool.getAuth(authData.authToken()));
     }
 
+    // Check if the system throws an error when trying to logout with a token that does not exist anymore.
     @Test
     public void logoutFailBadTokenTest() {
         Assertions.assertThrows(DataAccessException.class, () -> userServiceLogic.logout("fake-token-123"));

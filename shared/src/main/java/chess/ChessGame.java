@@ -55,7 +55,7 @@ public class ChessGame {
         }
 
         // EXECUTION PHASE
-        // If we get here, the move is valid. Commit it to the database (board).
+        // Getting here, the move is valid. Commit it to the database (board).
 
         // Handling En Passant Kill (removing the enemy pawn that was passed)
         if (movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {

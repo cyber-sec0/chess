@@ -18,41 +18,44 @@ public class Server {
 
     private final Javalin javalinWebServer;
     
-    // We create the instances of the data access objects here to be used by the services.
     private final MemoryUserDao memoryUserDaoTool = new MemoryUserDao();
     private final MemoryGameDao memoryGameDaoTool = new MemoryGameDao();
     private final MemoryAuthDao memoryAuthDaoTool = new MemoryAuthDao();
     
-    // These are the services that contain the business logic for the application.
     private final UserService userServiceLogic = new UserService(memoryUserDaoTool, memoryAuthDaoTool);
     private final GameService gameServiceLogic = new GameService(memoryGameDaoTool, memoryAuthDaoTool);
     private final ClearService clearServiceLogic = new ClearService(memoryUserDaoTool, memoryGameDaoTool, memoryAuthDaoTool);
     
-    // This is the tool we use to transform objects into text strings for the internet.
     private final Gson objectToJsonTranslator = new Gson();
 
     public Server() {
         javalinWebServer = Javalin.create(config -> config.staticFiles.add("web"));
+        createRoutes();
+    }
 
-        // Register your endpoints and exception handlers here.
-        
+    private void createRoutes() {
+        createSystemRoutes();
+        createUserRoutes();
+        createGameRoutes();
+    }
+
+    private void createSystemRoutes() {
         // Endpoint to clear the database
         javalinWebServer.delete("/db", (contextRequest) -> {
             clearServiceLogic.clearEverything();
             contextRequest.status(200);
             contextRequest.result("{}"); 
         });
+    }
 
+    private void createUserRoutes() {
         // Endpoint to register a user
         javalinWebServer.post("/user", (contextRequest) -> {
             try {
                 UserData userInformationBody = objectToJsonTranslator.fromJson(contextRequest.body(), UserData.class);
-                
-                // We check if the password is missing to avoid bad requests
                 if (userInformationBody.password() == null) {
                     throw new DataAccessException("Error: bad request");
                 }
-                
                 AuthData resultAuthentication = userServiceLogic.register(userInformationBody);
                 contextRequest.status(200);
                 contextRequest.result(objectToJsonTranslator.toJson(resultAuthentication));
@@ -65,12 +68,9 @@ public class Server {
         javalinWebServer.post("/session", (contextRequest) -> {
              try {
                 UserData userLoginBody = objectToJsonTranslator.fromJson(contextRequest.body(), UserData.class);
-                
-                // Extra validation here to guarantee 400 Bad Request if the password is null
                 if (userLoginBody.username() == null || userLoginBody.password() == null) {
                     throw new DataAccessException("Error: bad request");
                 }
-
                 AuthData resultAuthentication = userServiceLogic.login(userLoginBody);
                 contextRequest.status(200);
                 contextRequest.result(objectToJsonTranslator.toJson(resultAuthentication));
@@ -90,7 +90,9 @@ public class Server {
                 handleTheExceptionError(contextRequest, exceptionHappened);
             }
         });
+    }
 
+    private void createGameRoutes() {
         // Endpoint to list games
         javalinWebServer.get("/game", (contextRequest) -> {
              try {
@@ -108,12 +110,9 @@ public class Server {
              try {
                 String headerTokenString = contextRequest.header("authorization");
                 GameData requestGameData = objectToJsonTranslator.fromJson(contextRequest.body(), GameData.class);
-                
-                // Validation for game name
                 if (requestGameData.gameName() == null) {
                     throw new DataAccessException("Error: bad request");
                 }
-
                 int newGameNumericId = gameServiceLogic.createGame(headerTokenString, requestGameData.gameName());
                 contextRequest.status(200);
                 contextRequest.result(objectToJsonTranslator.toJson(Map.of("gameID", newGameNumericId)));
@@ -128,11 +127,7 @@ public class Server {
                 String headerTokenString = contextRequest.header("authorization");
                 Map bodyMapData = objectToJsonTranslator.fromJson(contextRequest.body(), Map.class);
                 
-                // Important: Check if gameID is valid before using it to avoid NullPointer
-                if (bodyMapData.get("gameID") == null) {
-                    throw new DataAccessException("Error: bad request");
-                }
-                if (bodyMapData.get("playerColor") == null) {
+                if (bodyMapData.get("gameID") == null || bodyMapData.get("playerColor") == null) {
                     throw new DataAccessException("Error: bad request");
                 }
 
@@ -149,10 +144,6 @@ public class Server {
         });
     }
 
-    /**
-     * This helper function is responsible for looking at the exception error message
-     * and deciding which HTTP status code needs to be sent back to the client.
-     */
     private void handleTheExceptionError(io.javalin.http.Context contextToUpdate, DataAccessException exceptionObject) {
         String messageInsideError = exceptionObject.getMessage();
         if (messageInsideError.contains("bad request")) {

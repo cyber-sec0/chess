@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 public class ClearServiceTests {
 
+    // This test performs a check to ensure that all data is completely nuked from the memory storage.
     @Test
     public void clearDataTest() {
         MemoryUserDao userDaoTool = new MemoryUserDao();

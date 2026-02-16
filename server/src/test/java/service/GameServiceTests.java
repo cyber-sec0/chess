@@ -35,17 +35,20 @@ public class GameServiceTests {
         existingAuthTokenString = "valid-token";
     }
 
+    // This test is responsible to verify if the creation of a new game returns a positive numeric ID.
     @Test
     public void createGameSuccessTest() throws DataAccessException {
         int gameNumericId = gameServiceLogic.createGame(existingAuthTokenString, "My Game");
         Assertions.assertTrue(gameNumericId > 0);
     }
 
+    // Validate that a user without a valid session token cannot create a game in the system.
     @Test
     public void createGameFailBadAuthTest() {
         Assertions.assertThrows(DataAccessException.class, () -> gameServiceLogic.createGame("invalid-token", "My Game"));
     }
 
+    // This function checks if the list of games returns the correct number of games stored in the list.
     @Test
     public void listGamesSuccessTest() throws DataAccessException {
         gameServiceLogic.createGame(existingAuthTokenString, "Game 1");
@@ -54,11 +57,13 @@ public class GameServiceTests {
         Assertions.assertEquals(2, gamesCollection.size());
     }
 
+    // It is necessary to ensure that listing games is a protected action that requires valid authentication.
     @Test
     public void listGamesFailBadAuthTest() {
         Assertions.assertThrows(DataAccessException.class, () -> gameServiceLogic.listGames("bad-token"));
     }
 
+    // This test validates if a player can successfully join a game that has a free spot for the requested color.
     @Test
     public void joinGameSuccessTest() throws DataAccessException {
         int gameNumericId = gameServiceLogic.createGame(existingAuthTokenString, "Game 1");
@@ -67,6 +72,7 @@ public class GameServiceTests {
         Assertions.assertEquals("player1", gameData.whiteUsername());
     }
 
+    // Verify that the system forbids a user from joining a color that is already taken by another user.
     @Test
     public void joinGameFailColorTakenTest() throws DataAccessException {
         int gameNumericId = gameServiceLogic.createGame(existingAuthTokenString, "Game 1");
