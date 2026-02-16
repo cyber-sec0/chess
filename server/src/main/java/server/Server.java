@@ -38,7 +38,8 @@ public class Server {
         javalin.delete("/db", (ctx) -> {
             clearService.clearEverything();
             ctx.status(200);
-            ctx.json(new Object());
+            // We use result() instead of json() to avoid the "Missing Jackson" error
+            ctx.result("{}");
         });
 
         // Endpoint to register a user
@@ -47,7 +48,8 @@ public class Server {
                 UserData bodyData = jsonSerializer.fromJson(ctx.body(), UserData.class);
                 AuthData resultAuth = userService.register(bodyData);
                 ctx.status(200);
-                ctx.json(resultAuth);
+                // Convert object to JSON string manually
+                ctx.result(jsonSerializer.toJson(resultAuth));
             } catch (DataAccessException exceptionVariable) {
                 handleException(ctx, exceptionVariable);
             }
@@ -59,7 +61,7 @@ public class Server {
                 UserData bodyData = jsonSerializer.fromJson(ctx.body(), UserData.class);
                 AuthData resultAuth = userService.login(bodyData);
                 ctx.status(200);
-                ctx.json(resultAuth);
+                ctx.result(jsonSerializer.toJson(resultAuth));
             } catch (DataAccessException exceptionVariable) {
                 handleException(ctx, exceptionVariable);
             }
@@ -71,7 +73,7 @@ public class Server {
                 String headerToken = ctx.header("authorization");
                 userService.logout(headerToken);
                 ctx.status(200);
-                ctx.json(new Object());
+                ctx.result("{}");
             } catch (DataAccessException exceptionVariable) {
                 handleException(ctx, exceptionVariable);
             }
@@ -84,7 +86,7 @@ public class Server {
                 var listOfGames = gameService.listGames(headerToken);
                 // We need to wrap the list in a map for the JSON format "games": [...]
                 ctx.status(200);
-                ctx.json(Map.of("games", listOfGames));
+                ctx.result(jsonSerializer.toJson(Map.of("games", listOfGames)));
             } catch (DataAccessException exceptionVariable) {
                 handleException(ctx, exceptionVariable);
             }
@@ -97,7 +99,7 @@ public class Server {
                 GameData requestGame = jsonSerializer.fromJson(ctx.body(), GameData.class);
                 int newId = gameService.createGame(headerToken, requestGame.gameName());
                 ctx.status(200);
-                ctx.json(Map.of("gameID", newId));
+                ctx.result(jsonSerializer.toJson(Map.of("gameID", newId)));
             } catch (DataAccessException exceptionVariable) {
                 handleException(ctx, exceptionVariable);
             }
@@ -116,7 +118,7 @@ public class Server {
 
                 gameService.joinGame(headerToken, colorString, idInt);
                 ctx.status(200);
-                ctx.json(new Object());
+                ctx.result("{}");
             } catch (DataAccessException exceptionVariable) {
                 handleException(ctx, exceptionVariable);
             }
@@ -138,7 +140,7 @@ public class Server {
         } else {
             ctx.status(500);
         }
-        ctx.json(Map.of("message", messageOfError));
+        ctx.result(jsonSerializer.toJson(Map.of("message", messageOfError)));
     }
 
     public int run(int desiredPort) {
