@@ -10,78 +10,68 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * This class tests the UserService.
+ * This class is testing the user service logic.
+ * It is important to clean the database before every test.
  */
 public class UserServiceTests {
 
-    private MemoryUserDao userDao;
-    private MemoryAuthDao authDao;
-    private UserService service;
+    private MemoryUserDao memoryUserDaoTool;
+    private MemoryAuthDao memoryAuthDaoTool;
+    private UserService userServiceLogic;
 
     @BeforeEach
-    public void setup() {
-        userDao = new MemoryUserDao();
-        authDao = new MemoryAuthDao();
-        service = new UserService(userDao, authDao);
+    public void setupMethodForTests() {
+        memoryUserDaoTool = new MemoryUserDao();
+        memoryAuthDaoTool = new MemoryAuthDao();
+        
+        // Clear the data because the list is static
+        memoryUserDaoTool.clear();
+        memoryAuthDaoTool.clear();
+        
+        userServiceLogic = new UserService(memoryUserDaoTool, memoryAuthDaoTool);
     }
 
     @Test
-    public void registerSuccess() throws DataAccessException {
-        UserData user = new UserData("benjamim", "password123", "ben@byu.edu");
-        AuthData result = service.register(user);
-        
-        Assertions.assertNotNull(result.authToken());
-        Assertions.assertEquals("benjamim", result.username());
+    public void registerSuccessTest() throws DataAccessException {
+        UserData userInformation = new UserData("benjamim", "password123", "ben@byu.edu");
+        AuthData resultData = userServiceLogic.register(userInformation);
+        Assertions.assertNotNull(resultData.authToken());
+        Assertions.assertEquals("benjamim", resultData.username());
     }
 
     @Test
-    public void registerFailDuplicate() throws DataAccessException {
-        UserData user = new UserData("benjamim", "password123", "ben@byu.edu");
-        service.register(user);
-        
-        // Try to register same user again
-        Assertions.assertThrows(DataAccessException.class, () -> {
-             service.register(user);
-        });
+    public void registerFailDuplicateTest() throws DataAccessException {
+        UserData userInformation = new UserData("benjamim", "password123", "ben@byu.edu");
+        userServiceLogic.register(userInformation);
+        Assertions.assertThrows(DataAccessException.class, () -> userServiceLogic.register(userInformation));
     }
 
     @Test
-    public void loginSuccess() throws DataAccessException {
-        UserData user = new UserData("benjamim", "password123", "ben@byu.edu");
-        service.register(user);
-        
-        AuthData loginResult = service.login(user);
-        Assertions.assertNotNull(loginResult.authToken());
+    public void loginSuccessTest() throws DataAccessException {
+        UserData userInformation = new UserData("benjamim", "password123", "ben@byu.edu");
+        userServiceLogic.register(userInformation);
+        AuthData loginResultData = userServiceLogic.login(userInformation);
+        Assertions.assertNotNull(loginResultData.authToken());
     }
 
     @Test
-    public void loginFailWrongPassword() throws DataAccessException {
-        UserData user = new UserData("benjamim", "password123", "ben@byu.edu");
-        service.register(user);
-        
-        UserData wrongPassUser = new UserData("benjamim", "wrong", "ben@byu.edu");
-        
-        Assertions.assertThrows(DataAccessException.class, () -> {
-             service.login(wrongPassUser);
-        });
+    public void loginFailWrongPasswordTest() throws DataAccessException {
+        UserData userInformation = new UserData("benjamim", "password123", "ben@byu.edu");
+        userServiceLogic.register(userInformation);
+        UserData wrongPassUserInformation = new UserData("benjamim", "wrong", "ben@byu.edu");
+        Assertions.assertThrows(DataAccessException.class, () -> userServiceLogic.login(wrongPassUserInformation));
     }
 
     @Test
-    public void logoutSuccess() throws DataAccessException {
-        UserData user = new UserData("benjamim", "password123", "ben@byu.edu");
-        AuthData auth = service.register(user);
-        
-        // Should not throw exception
-        service.logout(auth.authToken());
-        
-        // Verify token is gone (checking dao manually just to be sure)
-        Assertions.assertNull(authDao.getAuth(auth.authToken()));
+    public void logoutSuccessTest() throws DataAccessException {
+        UserData userInformation = new UserData("benjamim", "password123", "ben@byu.edu");
+        AuthData authData = userServiceLogic.register(userInformation);
+        userServiceLogic.logout(authData.authToken());
+        Assertions.assertNull(memoryAuthDaoTool.getAuth(authData.authToken()));
     }
 
     @Test
-    public void logoutFailBadToken() {
-        Assertions.assertThrows(DataAccessException.class, () -> {
-             service.logout("fake-token-123");
-        });
+    public void logoutFailBadTokenTest() {
+        Assertions.assertThrows(DataAccessException.class, () -> userServiceLogic.logout("fake-token-123"));
     }
 }

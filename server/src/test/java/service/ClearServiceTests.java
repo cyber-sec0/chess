@@ -10,19 +10,14 @@ import org.junit.jupiter.api.Test;
 public class ClearServiceTests {
 
     @Test
-    public void clearData() {
-        MemoryUserDao u = new MemoryUserDao();
-        MemoryGameDao g = new MemoryGameDao();
-        MemoryAuthDao a = new MemoryAuthDao();
-        ClearService service = new ClearService(u, g, a);
+    public void clearDataTest() {
+        MemoryUserDao userDaoTool = new MemoryUserDao();
+        MemoryGameDao gameDaoTool = new MemoryGameDao();
+        MemoryAuthDao authDaoTool = new MemoryAuthDao();
+        ClearService clearServiceLogic = new ClearService(userDaoTool, gameDaoTool, authDaoTool);
 
-        // Add some garbage data
-        u.createUser(new UserData("user", "pass", "email"));
-        
-        // Clear
-        service.clearEverything();
-        
-        // Verify empty
-        Assertions.assertNull(u.getUser("user"));
+        userDaoTool.createUser(new UserData("user", "pass", "email"));
+        clearServiceLogic.clearEverything();
+        Assertions.assertNull(userDaoTool.getUser("user"));
     }
 }

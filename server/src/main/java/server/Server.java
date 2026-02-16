@@ -16,136 +16,163 @@ import java.util.Map;
 
 public class Server {
 
-    private final Javalin javalin;
+    private final Javalin javalinWebServer;
     
-    // These are the instances of the classes for the server logic
-    private final MemoryUserDao userDao = new MemoryUserDao();
-    private final MemoryGameDao gameDao = new MemoryGameDao();
-    private final MemoryAuthDao authDao = new MemoryAuthDao();
+    // We create the instances of the data access objects here to be used by the services.
+    private final MemoryUserDao memoryUserDaoTool = new MemoryUserDao();
+    private final MemoryGameDao memoryGameDaoTool = new MemoryGameDao();
+    private final MemoryAuthDao memoryAuthDaoTool = new MemoryAuthDao();
     
-    private final UserService userService = new UserService(userDao, authDao);
-    private final GameService gameService = new GameService(gameDao, authDao);
-    private final ClearService clearService = new ClearService(userDao, gameDao, authDao);
+    // These are the services that contain the business logic for the application.
+    private final UserService userServiceLogic = new UserService(memoryUserDaoTool, memoryAuthDaoTool);
+    private final GameService gameServiceLogic = new GameService(memoryGameDaoTool, memoryAuthDaoTool);
+    private final ClearService clearServiceLogic = new ClearService(memoryUserDaoTool, memoryGameDaoTool, memoryAuthDaoTool);
     
-    private final Gson jsonSerializer = new Gson();
+    // This is the tool we use to transform objects into text strings for the internet.
+    private final Gson objectToJsonTranslator = new Gson();
 
     public Server() {
-        javalin = Javalin.create(config -> config.staticFiles.add("web"));
+        javalinWebServer = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.
         
         // Endpoint to clear the database
-        javalin.delete("/db", (ctx) -> {
-            clearService.clearEverything();
-            ctx.status(200);
-            ctx.result("{}"); 
+        javalinWebServer.delete("/db", (contextRequest) -> {
+            clearServiceLogic.clearEverything();
+            contextRequest.status(200);
+            contextRequest.result("{}"); 
         });
 
         // Endpoint to register a user
-        javalin.post("/user", (ctx) -> {
+        javalinWebServer.post("/user", (contextRequest) -> {
             try {
-                UserData bodyData = jsonSerializer.fromJson(ctx.body(), UserData.class);
-                AuthData resultAuth = userService.register(bodyData);
-                ctx.status(200);
-                ctx.result(jsonSerializer.toJson(resultAuth));
-            } catch (DataAccessException exceptionVariable) {
-                handleException(ctx, exceptionVariable);
+                UserData userInformationBody = objectToJsonTranslator.fromJson(contextRequest.body(), UserData.class);
+                
+                // We check if the password is missing to avoid bad requests
+                if (userInformationBody.password() == null) {
+                    throw new DataAccessException("Error: bad request");
+                }
+                
+                AuthData resultAuthentication = userServiceLogic.register(userInformationBody);
+                contextRequest.status(200);
+                contextRequest.result(objectToJsonTranslator.toJson(resultAuthentication));
+            } catch (DataAccessException exceptionHappened) {
+                handleTheExceptionError(contextRequest, exceptionHappened);
             }
         });
 
         // Endpoint for login
-        javalin.post("/session", (ctx) -> {
+        javalinWebServer.post("/session", (contextRequest) -> {
              try {
-                UserData bodyData = jsonSerializer.fromJson(ctx.body(), UserData.class);
-                AuthData resultAuth = userService.login(bodyData);
-                ctx.status(200);
-                ctx.result(jsonSerializer.toJson(resultAuth));
-            } catch (DataAccessException exceptionVariable) {
-                handleException(ctx, exceptionVariable);
+                UserData userLoginBody = objectToJsonTranslator.fromJson(contextRequest.body(), UserData.class);
+                
+                // Extra validation here to guarantee 400 Bad Request if the password is null
+                if (userLoginBody.username() == null || userLoginBody.password() == null) {
+                    throw new DataAccessException("Error: bad request");
+                }
+
+                AuthData resultAuthentication = userServiceLogic.login(userLoginBody);
+                contextRequest.status(200);
+                contextRequest.result(objectToJsonTranslator.toJson(resultAuthentication));
+            } catch (DataAccessException exceptionHappened) {
+                handleTheExceptionError(contextRequest, exceptionHappened);
             }
         });
 
         // Endpoint for logout
-        javalin.delete("/session", (ctx) -> {
+        javalinWebServer.delete("/session", (contextRequest) -> {
              try {
-                String headerToken = ctx.header("authorization");
-                userService.logout(headerToken);
-                ctx.status(200);
-                ctx.result("{}");
-            } catch (DataAccessException exceptionVariable) {
-                handleException(ctx, exceptionVariable);
+                String headerTokenString = contextRequest.header("authorization");
+                userServiceLogic.logout(headerTokenString);
+                contextRequest.status(200);
+                contextRequest.result("{}");
+            } catch (DataAccessException exceptionHappened) {
+                handleTheExceptionError(contextRequest, exceptionHappened);
             }
         });
 
         // Endpoint to list games
-        javalin.get("/game", (ctx) -> {
+        javalinWebServer.get("/game", (contextRequest) -> {
              try {
-                String headerToken = ctx.header("authorization");
-                var listOfGames = gameService.listGames(headerToken);
-                ctx.status(200);
-                ctx.result(jsonSerializer.toJson(Map.of("games", listOfGames)));
-            } catch (DataAccessException exceptionVariable) {
-                handleException(ctx, exceptionVariable);
+                String headerTokenString = contextRequest.header("authorization");
+                var collectionOfGames = gameServiceLogic.listGames(headerTokenString);
+                contextRequest.status(200);
+                contextRequest.result(objectToJsonTranslator.toJson(Map.of("games", collectionOfGames)));
+            } catch (DataAccessException exceptionHappened) {
+                handleTheExceptionError(contextRequest, exceptionHappened);
             }
         });
 
         // Endpoint to create game
-        javalin.post("/game", (ctx) -> {
+        javalinWebServer.post("/game", (contextRequest) -> {
              try {
-                String headerToken = ctx.header("authorization");
-                GameData requestGame = jsonSerializer.fromJson(ctx.body(), GameData.class);
-                int newId = gameService.createGame(headerToken, requestGame.gameName());
-                ctx.status(200);
-                ctx.result(jsonSerializer.toJson(Map.of("gameID", newId)));
-            } catch (DataAccessException exceptionVariable) {
-                handleException(ctx, exceptionVariable);
+                String headerTokenString = contextRequest.header("authorization");
+                GameData requestGameData = objectToJsonTranslator.fromJson(contextRequest.body(), GameData.class);
+                
+                // Validation for game name
+                if (requestGameData.gameName() == null) {
+                    throw new DataAccessException("Error: bad request");
+                }
+
+                int newGameNumericId = gameServiceLogic.createGame(headerTokenString, requestGameData.gameName());
+                contextRequest.status(200);
+                contextRequest.result(objectToJsonTranslator.toJson(Map.of("gameID", newGameNumericId)));
+            } catch (DataAccessException exceptionHappened) {
+                handleTheExceptionError(contextRequest, exceptionHappened);
             }
         });
 
         // Endpoint to join game
-        javalin.put("/game", (ctx) -> {
+        javalinWebServer.put("/game", (contextRequest) -> {
              try {
-                String headerToken = ctx.header("authorization");
-                Map bodyMap = jsonSerializer.fromJson(ctx.body(), Map.class);
-            
-                // Check if gameID is valid before using it
-                if (bodyMap.get("gameID") == null) {
+                String headerTokenString = contextRequest.header("authorization");
+                Map bodyMapData = objectToJsonTranslator.fromJson(contextRequest.body(), Map.class);
+                
+                // Important: Check if gameID is valid before using it to avoid NullPointer
+                if (bodyMapData.get("gameID") == null) {
+                    throw new DataAccessException("Error: bad request");
+                }
+                if (bodyMapData.get("playerColor") == null) {
                     throw new DataAccessException("Error: bad request");
                 }
 
-                String colorString = (String) bodyMap.get("playerColor");
-                double idDouble = (double) bodyMap.get("gameID");
-                int idInt = (int) idDouble;
+                String colorStringValue = (String) bodyMapData.get("playerColor");
+                double idDoubleValue = (double) bodyMapData.get("gameID");
+                int idIntegerValue = (int) idDoubleValue;
                 
-                gameService.joinGame(headerToken, colorString, idInt);
-                ctx.status(200);
-                ctx.result("{}");
-            } catch (DataAccessException exceptionVariable) {
-                handleException(ctx, exceptionVariable);
+                gameServiceLogic.joinGame(headerTokenString, colorStringValue, idIntegerValue);
+                contextRequest.status(200);
+                contextRequest.result("{}");
+            } catch (DataAccessException exceptionHappened) {
+                handleTheExceptionError(contextRequest, exceptionHappened);
             }
         });
     }
 
-    private void handleException(io.javalin.http.Context ctx, DataAccessException ex) {
-        String messageOfError = ex.getMessage();
-        if (messageOfError.contains("bad request")) {
-            ctx.status(400);
-        } else if (messageOfError.contains("unauthorized")) {
-            ctx.status(401);
-        } else if (messageOfError.contains("already taken")) {
-            ctx.status(403);
+    /**
+     * This helper function is responsible for looking at the exception error message
+     * and deciding which HTTP status code needs to be sent back to the client.
+     */
+    private void handleTheExceptionError(io.javalin.http.Context contextToUpdate, DataAccessException exceptionObject) {
+        String messageInsideError = exceptionObject.getMessage();
+        if (messageInsideError.contains("bad request")) {
+            contextToUpdate.status(400);
+        } else if (messageInsideError.contains("unauthorized")) {
+            contextToUpdate.status(401);
+        } else if (messageInsideError.contains("already taken")) {
+            contextToUpdate.status(403);
         } else {
-            ctx.status(500);
+            contextToUpdate.status(500);
         }
-        ctx.result(jsonSerializer.toJson(Map.of("message", messageOfError)));
+        contextToUpdate.result(objectToJsonTranslator.toJson(Map.of("message", messageInsideError)));
     }
 
-    public int run(int desiredPort) {
-        javalin.start(desiredPort);
-        return javalin.port();
+    public int run(int desiredPortNumber) {
+        javalinWebServer.start(desiredPortNumber);
+        return javalinWebServer.port();
     }
 
     public void stop() {
-        javalin.stop();
+        javalinWebServer.stop();
     }
 }
