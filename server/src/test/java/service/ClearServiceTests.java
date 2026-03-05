@@ -1,5 +1,6 @@
 package service;
 
+import dataaccess.DataAccessException;
 import dataaccess.MemoryAuthDao;
 import dataaccess.MemoryGameDao;
 import dataaccess.MemoryUserDao;
@@ -9,16 +10,17 @@ import org.junit.jupiter.api.Test;
 
 public class ClearServiceTests {
 
-    // This test performs a check to ensure that all data is completely nuked from the memory storage.
+    //This test performs a check to ensure that all data is completely nuked from the memory database storage.
     @Test
-    public void clearDataTest() {
-        MemoryUserDao userDaoTool = new MemoryUserDao();
-        MemoryGameDao gameDaoTool = new MemoryGameDao();
-        MemoryAuthDao authDaoTool = new MemoryAuthDao();
-        ClearService clearServiceLogic = new ClearService(userDaoTool, gameDaoTool, authDaoTool);
+    public void clearDataTest() throws DataAccessException {
+        //Adding the exception throw because the clear commands touch the database and can crash
+        MemoryUserDao userDaoToolForClearingTest = new MemoryUserDao();
+        MemoryGameDao gameDaoToolForClearingTest = new MemoryGameDao();
+        MemoryAuthDao authDaoToolForClearingTest = new MemoryAuthDao();
+        ClearService clearServiceLogicForTesting = new ClearService(userDaoToolForClearingTest, gameDaoToolForClearingTest, authDaoToolForClearingTest);
 
-        userDaoTool.createUser(new UserData("user", "pass", "email"));
-        clearServiceLogic.clearEverything();
-        Assertions.assertNull(userDaoTool.getUser("user"));
+        userDaoToolForClearingTest.createUser(new UserData("user", "pass", "email"));
+        clearServiceLogicForTesting.clearEverything();
+        Assertions.assertNull(userDaoToolForClearingTest.getUser("user"));
     }
 }
