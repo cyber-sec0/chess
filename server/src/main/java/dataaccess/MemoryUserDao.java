@@ -23,7 +23,8 @@ public class MemoryUserDao {
                     "emailStringForDatabase VARCHAR(255) NOT NULL, " +
                     "PRIMARY KEY (usernameStringForDatabase))";
             try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-                try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(createTableStringCommandExecution)) {
+                try (PreparedStatement preparedStatementForExecutionCommand =
+                             connectionToDatabaseNetwork.prepareStatement(createTableStringCommandExecution)) {
                     preparedStatementForExecutionCommand.executeUpdate();
                 }
             }
@@ -40,12 +41,13 @@ public class MemoryUserDao {
      * @throws DataAccessException if connection fails so server can return 500 error code.
      */
     public UserData getUser(String usernameToFindInDatabaseTable) throws DataAccessException {
-        String selectCommandStringForDatabase = "SELECT usernameStringForDatabase, passwordStringForDatabase, emailStringForDatabase FROM usersDatabaseTableForStorage WHERE usernameStringForDatabase = ?";
+        String selectCommandStringForDatabase = "SELECT usernameStringForDatabase, passwordStringForDatabase, " +
+                "emailStringForDatabase FROM usersDatabaseTableForStorage WHERE usernameStringForDatabase = ?";
         try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(selectCommandStringForDatabase)) {
+            try (PreparedStatement preparedStatementForExecutionCommand =
+                         connectionToDatabaseNetwork.prepareStatement(selectCommandStringForDatabase)) {
                 preparedStatementForExecutionCommand.setString(1, usernameToFindInDatabaseTable);
                 try (ResultSet resultFromDatabaseQueryExecution = preparedStatementForExecutionCommand.executeQuery()) {
-                    // Checking if the result from database has the user line so we dont return empty
                     if (resultFromDatabaseQueryExecution.next()) {
                         return new UserData(
                                 resultFromDatabaseQueryExecution.getString("usernameStringForDatabase"),
@@ -56,7 +58,6 @@ public class MemoryUserDao {
                 }
             }
         } catch (SQLException exceptionFromDatabaseNetworkError) {
-            // Throw the data access exception so server handler gives 500 error code for bad connection
             throw new DataAccessException(exceptionFromDatabaseNetworkError.getMessage());
         }
         return null;
@@ -69,9 +70,11 @@ public class MemoryUserDao {
      * @throws DataAccessException if connection fails so server can return 500 error code.
      */
     public void createUser(UserData newUserDataToSaveInDatabaseTable) throws DataAccessException {
-        String insertCommandStringForDatabase = "INSERT INTO usersDatabaseTableForStorage (usernameStringForDatabase, passwordStringForDatabase, emailStringForDatabase) VALUES (?, ?, ?)";
+        String insertCommandStringForDatabase = "INSERT INTO usersDatabaseTableForStorage " +
+                "(usernameStringForDatabase, passwordStringForDatabase, emailStringForDatabase) VALUES (?, ?, ?)";
         try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(insertCommandStringForDatabase)) {
+            try (PreparedStatement preparedStatementForExecutionCommand =
+                         connectionToDatabaseNetwork.prepareStatement(insertCommandStringForDatabase)) {
                 preparedStatementForExecutionCommand.setString(1, newUserDataToSaveInDatabaseTable.username());
                 String hashedPasswordStringForSecurity = BCrypt.hashpw(newUserDataToSaveInDatabaseTable.password(), BCrypt.gensalt());
                 preparedStatementForExecutionCommand.setString(2, hashedPasswordStringForSecurity);
@@ -79,7 +82,6 @@ public class MemoryUserDao {
                 preparedStatementForExecutionCommand.executeUpdate();
             }
         } catch (SQLException exceptionFromDatabaseNetworkError) {
-            // Throw the data access exception so server handler gives 500 error code for bad connection
             throw new DataAccessException(exceptionFromDatabaseNetworkError.getMessage());
         }
     }
@@ -92,11 +94,11 @@ public class MemoryUserDao {
     public void clear() throws DataAccessException {
         String deleteCommandStringForDatabase = "TRUNCATE TABLE usersDatabaseTableForStorage";
         try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(deleteCommandStringForDatabase)) {
+            try (PreparedStatement preparedStatementForExecutionCommand =
+                         connectionToDatabaseNetwork.prepareStatement(deleteCommandStringForDatabase)) {
                 preparedStatementForExecutionCommand.executeUpdate();
             }
         } catch (SQLException exceptionFromDatabaseNetworkError) {
-            // Throw the data access exception so server handler gives 500 error code for bad connection
             throw new DataAccessException(exceptionFromDatabaseNetworkError.getMessage());
         }
     }

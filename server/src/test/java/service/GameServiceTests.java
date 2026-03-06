@@ -84,6 +84,7 @@ public class GameServiceTests {
         //Making sure that trying to join a taken spot throws the correct exception
         int gameNumericIdFromDatabase = gameServiceLogicForTesting.createGame(existingAuthTokenStringForGameTest, "Game 1");
         gameServiceLogicForTesting.joinGame(existingAuthTokenStringForGameTest, "WHITE", gameNumericIdFromDatabase);
-        Assertions.assertThrows(DataAccessException.class, () -> gameServiceLogicForTesting.joinGame(existingAuthTokenStringForGameTest, "WHITE", gameNumericIdFromDatabase));
+        Assertions.assertThrows(DataAccessException.class, () ->
+                gameServiceLogicForTesting.joinGame(existingAuthTokenStringForGameTest, "WHITE", gameNumericIdFromDatabase));
     }
 }

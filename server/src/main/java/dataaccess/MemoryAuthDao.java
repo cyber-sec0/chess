@@ -21,7 +21,8 @@ public class MemoryAuthDao {
                     "usernameStringForDatabase VARCHAR(255) NOT NULL, " +
                     "PRIMARY KEY (tokenStringForDatabase))";
             try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-                try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(createTableStringCommandExecution)) {
+                try (PreparedStatement preparedStatementForExecutionCommand =
+                             connectionToDatabaseNetwork.prepareStatement(createTableStringCommandExecution)) {
                     preparedStatementForExecutionCommand.executeUpdate();
                 }
             }
@@ -36,15 +37,16 @@ public class MemoryAuthDao {
      * @throws DataAccessException if connection fails so server can return 500 error code.
      */
     public void createAuth(AuthData newAuthDataToSaveInDatabaseTable) throws DataAccessException {
-        String insertCommandStringForDatabase = "INSERT INTO authDatabaseTableForStorage (tokenStringForDatabase, usernameStringForDatabase) VALUES (?, ?)";
+        String insertCommandStringForDatabase = "INSERT INTO authDatabaseTableForStorage " +
+                "(tokenStringForDatabase, usernameStringForDatabase) VALUES (?, ?)";
         try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(insertCommandStringForDatabase)) {
+            try (PreparedStatement preparedStatementForExecutionCommand =
+                         connectionToDatabaseNetwork.prepareStatement(insertCommandStringForDatabase)) {
                 preparedStatementForExecutionCommand.setString(1, newAuthDataToSaveInDatabaseTable.authToken());
                 preparedStatementForExecutionCommand.setString(2, newAuthDataToSaveInDatabaseTable.username());
                 preparedStatementForExecutionCommand.executeUpdate();
             }
         } catch (SQLException exceptionFromDatabaseNetworkError) {
-            // Throw the data access exception so server handler gives 500 error code for bad connection
             throw new DataAccessException(exceptionFromDatabaseNetworkError.getMessage());
         }
     }
@@ -56,12 +58,13 @@ public class MemoryAuthDao {
      * @throws DataAccessException if connection fails so server can return 500 error code.
      */
     public AuthData getAuth(String tokenStringToFindInDatabaseTable) throws DataAccessException {
-        String selectCommandStringForDatabase = "SELECT tokenStringForDatabase, usernameStringForDatabase FROM authDatabaseTableForStorage WHERE tokenStringForDatabase = ?";
+        String selectCommandStringForDatabase = "SELECT tokenStringForDatabase, usernameStringForDatabase " +
+                "FROM authDatabaseTableForStorage WHERE tokenStringForDatabase = ?";
         try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(selectCommandStringForDatabase)) {
+            try (PreparedStatement preparedStatementForExecutionCommand =
+                         connectionToDatabaseNetwork.prepareStatement(selectCommandStringForDatabase)) {
                 preparedStatementForExecutionCommand.setString(1, tokenStringToFindInDatabaseTable);
                 try (ResultSet resultFromDatabaseQueryExecution = preparedStatementForExecutionCommand.executeQuery()) {
-                    // Checking if the result from database has the auth line so we dont return empty
                     if (resultFromDatabaseQueryExecution.next()) {
                         return new AuthData(
                                 resultFromDatabaseQueryExecution.getString("tokenStringForDatabase"),
@@ -71,7 +74,6 @@ public class MemoryAuthDao {
                 }
             }
         } catch (SQLException exceptionFromDatabaseNetworkError) {
-            // Throw the data access exception so server handler gives 500 error code for bad connection
             throw new DataAccessException(exceptionFromDatabaseNetworkError.getMessage());
         }
         return null;
@@ -85,12 +87,12 @@ public class MemoryAuthDao {
     public void deleteAuth(String tokenStringToDeleteFromDatabaseTable) throws DataAccessException {
         String deleteCommandStringForDatabase = "DELETE FROM authDatabaseTableForStorage WHERE tokenStringForDatabase = ?";
         try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(deleteCommandStringForDatabase)) {
+            try (PreparedStatement preparedStatementForExecutionCommand =
+                         connectionToDatabaseNetwork.prepareStatement(deleteCommandStringForDatabase)) {
                 preparedStatementForExecutionCommand.setString(1, tokenStringToDeleteFromDatabaseTable);
                 preparedStatementForExecutionCommand.executeUpdate();
             }
         } catch (SQLException exceptionFromDatabaseNetworkError) {
-            // Throw the data access exception so server handler gives 500 error code for bad connection
             throw new DataAccessException(exceptionFromDatabaseNetworkError.getMessage());
         }
     }
@@ -102,11 +104,11 @@ public class MemoryAuthDao {
     public void clear() throws DataAccessException {
         String deleteCommandStringForDatabase = "TRUNCATE TABLE authDatabaseTableForStorage";
         try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(deleteCommandStringForDatabase)) {
+            try (PreparedStatement preparedStatementForExecutionCommand =
+                         connectionToDatabaseNetwork.prepareStatement(deleteCommandStringForDatabase)) {
                 preparedStatementForExecutionCommand.executeUpdate();
             }
         } catch (SQLException exceptionFromDatabaseNetworkError) {
-            // Throw the data access exception so server handler gives 500 error code for bad connection
             throw new DataAccessException(exceptionFromDatabaseNetworkError.getMessage());
         }
     }

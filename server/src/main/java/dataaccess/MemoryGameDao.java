@@ -30,7 +30,8 @@ public class MemoryGameDao {
                     "gameJsonObjectStringForDatabase TEXT NOT NULL, " +
                     "PRIMARY KEY (gameNumericIdForDatabase))";
             try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-                try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(createTableStringCommandExecution)) {
+                try (PreparedStatement preparedStatementForExecutionCommand =
+                             connectionToDatabaseNetwork.prepareStatement(createTableStringCommandExecution)) {
                     preparedStatementForExecutionCommand.executeUpdate();
                 }
             }
@@ -45,9 +46,12 @@ public class MemoryGameDao {
      * @throws DataAccessException if connection fails so server can return 500 error code.
      */
     public void createGame(GameData gameToAddInDatabaseTable) throws DataAccessException {
-        String insertCommandStringForDatabase = "INSERT INTO gameDatabaseTableForStorage (gameNumericIdForDatabase, whiteUsernameStringForDatabase, blackUsernameStringForDatabase, gameNameStringForDatabase, gameJsonObjectStringForDatabase) VALUES (?, ?, ?, ?, ?)";
+        String insertCommandStringForDatabase = "INSERT INTO gameDatabaseTableForStorage " +
+                "(gameNumericIdForDatabase, whiteUsernameStringForDatabase, blackUsernameStringForDatabase, " +
+                "gameNameStringForDatabase, gameJsonObjectStringForDatabase) VALUES (?, ?, ?, ?, ?)";
         try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(insertCommandStringForDatabase)) {
+            try (PreparedStatement preparedStatementForExecutionCommand =
+                         connectionToDatabaseNetwork.prepareStatement(insertCommandStringForDatabase)) {
                 preparedStatementForExecutionCommand.setInt(1, gameToAddInDatabaseTable.gameID());
                 preparedStatementForExecutionCommand.setString(2, gameToAddInDatabaseTable.whiteUsername());
                 preparedStatementForExecutionCommand.setString(3, gameToAddInDatabaseTable.blackUsername());
@@ -57,7 +61,6 @@ public class MemoryGameDao {
                 preparedStatementForExecutionCommand.executeUpdate();
             }
         } catch (SQLException exceptionFromDatabaseNetworkError) {
-            // Throw the data access exception so server handler gives 500 error code for bad connection
             throw new DataAccessException(exceptionFromDatabaseNetworkError.getMessage());
         }
     }
@@ -69,15 +72,18 @@ public class MemoryGameDao {
      * @throws DataAccessException if connection fails so server can return 500 error code.
      */
     public GameData getGame(int gameNumericIdToFindInDatabase) throws DataAccessException {
-        String selectCommandStringForDatabase = "SELECT gameNumericIdForDatabase, whiteUsernameStringForDatabase, blackUsernameStringForDatabase, gameNameStringForDatabase, gameJsonObjectStringForDatabase FROM gameDatabaseTableForStorage WHERE gameNumericIdForDatabase = ?";
+        String selectCommandStringForDatabase = "SELECT gameNumericIdForDatabase, whiteUsernameStringForDatabase, " +
+                "blackUsernameStringForDatabase, gameNameStringForDatabase, gameJsonObjectStringForDatabase " +
+                "FROM gameDatabaseTableForStorage WHERE gameNumericIdForDatabase = ?";
         try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(selectCommandStringForDatabase)) {
+            try (PreparedStatement preparedStatementForExecutionCommand =
+                         connectionToDatabaseNetwork.prepareStatement(selectCommandStringForDatabase)) {
                 preparedStatementForExecutionCommand.setInt(1, gameNumericIdToFindInDatabase);
                 try (ResultSet resultFromDatabaseQueryExecution = preparedStatementForExecutionCommand.executeQuery()) {
-                    // Checking if the result from database has the game line so we dont return empty
                     if (resultFromDatabaseQueryExecution.next()) {
                         String gameJsonObjectStringForDatabase = resultFromDatabaseQueryExecution.getString("gameJsonObjectStringForDatabase");
-                        ChessGame deserializedGameObjectForGame = objectToJsonTranslatorForDatabase.fromJson(gameJsonObjectStringForDatabase, ChessGame.class);
+                        ChessGame deserializedGameObjectForGame = objectToJsonTranslatorForDatabase
+                                .fromJson(gameJsonObjectStringForDatabase, ChessGame.class);
                         return new GameData(
                                 resultFromDatabaseQueryExecution.getInt("gameNumericIdForDatabase"),
                                 resultFromDatabaseQueryExecution.getString("whiteUsernameStringForDatabase"),
@@ -89,7 +95,6 @@ public class MemoryGameDao {
                 }
             }
         } catch (SQLException exceptionFromDatabaseNetworkError) {
-            // Throw the data access exception so server handler gives 500 error code for bad connection
             throw new DataAccessException(exceptionFromDatabaseNetworkError.getMessage());
         }
         return null;
@@ -102,14 +107,17 @@ public class MemoryGameDao {
      */
     public Collection<GameData> listGames() throws DataAccessException {
         Collection<GameData> collectionOfGamesFromDatabase = new ArrayList<>();
-        String selectCommandStringForDatabase = "SELECT gameNumericIdForDatabase, whiteUsernameStringForDatabase, blackUsernameStringForDatabase, gameNameStringForDatabase, gameJsonObjectStringForDatabase FROM gameDatabaseTableForStorage";
+        String selectCommandStringForDatabase = "SELECT gameNumericIdForDatabase, whiteUsernameStringForDatabase, " +
+                "blackUsernameStringForDatabase, gameNameStringForDatabase, gameJsonObjectStringForDatabase " +
+                "FROM gameDatabaseTableForStorage";
         try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(selectCommandStringForDatabase)) {
+            try (PreparedStatement preparedStatementForExecutionCommand =
+                         connectionToDatabaseNetwork.prepareStatement(selectCommandStringForDatabase)) {
                 try (ResultSet resultFromDatabaseQueryExecution = preparedStatementForExecutionCommand.executeQuery()) {
-                    // Looping through all the rows inside the database query result so we can return list
                     while (resultFromDatabaseQueryExecution.next()) {
                         String gameJsonObjectStringForDatabase = resultFromDatabaseQueryExecution.getString("gameJsonObjectStringForDatabase");
-                        ChessGame deserializedGameObjectForGame = objectToJsonTranslatorForDatabase.fromJson(gameJsonObjectStringForDatabase, ChessGame.class);
+                        ChessGame deserializedGameObjectForGame = objectToJsonTranslatorForDatabase
+                                .fromJson(gameJsonObjectStringForDatabase, ChessGame.class);
                         GameData individualGameObjectFromDatabase = new GameData(
                                 resultFromDatabaseQueryExecution.getInt("gameNumericIdForDatabase"),
                                 resultFromDatabaseQueryExecution.getString("whiteUsernameStringForDatabase"),
@@ -122,7 +130,6 @@ public class MemoryGameDao {
                 }
             }
         } catch (SQLException exceptionFromDatabaseNetworkError) {
-            // Throw the data access exception so server handler gives 500 error code for bad connection
             throw new DataAccessException(exceptionFromDatabaseNetworkError.getMessage());
         }
         return collectionOfGamesFromDatabase;
@@ -134,9 +141,12 @@ public class MemoryGameDao {
      * @throws DataAccessException if connection fails so server can return 500 error code.
      */
     public void updateGame(GameData updatedGameInformationObjectToSave) throws DataAccessException {
-        String updateCommandStringForDatabase = "UPDATE gameDatabaseTableForStorage SET whiteUsernameStringForDatabase = ?, blackUsernameStringForDatabase = ?, gameNameStringForDatabase = ?, gameJsonObjectStringForDatabase = ? WHERE gameNumericIdForDatabase = ?";
+        String updateCommandStringForDatabase = "UPDATE gameDatabaseTableForStorage SET whiteUsernameStringForDatabase = ?, " +
+                "blackUsernameStringForDatabase = ?, gameNameStringForDatabase = ?, gameJsonObjectStringForDatabase = ? " +
+                "WHERE gameNumericIdForDatabase = ?";
         try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(updateCommandStringForDatabase)) {
+            try (PreparedStatement preparedStatementForExecutionCommand =
+                         connectionToDatabaseNetwork.prepareStatement(updateCommandStringForDatabase)) {
                 preparedStatementForExecutionCommand.setString(1, updatedGameInformationObjectToSave.whiteUsername());
                 preparedStatementForExecutionCommand.setString(2, updatedGameInformationObjectToSave.blackUsername());
                 preparedStatementForExecutionCommand.setString(3, updatedGameInformationObjectToSave.gameName());
@@ -146,7 +156,6 @@ public class MemoryGameDao {
                 preparedStatementForExecutionCommand.executeUpdate();
             }
         } catch (SQLException exceptionFromDatabaseNetworkError) {
-            // Throw the data access exception so server handler gives 500 error code for bad connection
             throw new DataAccessException(exceptionFromDatabaseNetworkError.getMessage());
         }
     }
@@ -158,11 +167,11 @@ public class MemoryGameDao {
     public void clear() throws DataAccessException {
         String deleteCommandStringForDatabase = "TRUNCATE TABLE gameDatabaseTableForStorage";
         try (Connection connectionToDatabaseNetwork = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatementForExecutionCommand = connectionToDatabaseNetwork.prepareStatement(deleteCommandStringForDatabase)) {
+            try (PreparedStatement preparedStatementForExecutionCommand =
+                         connectionToDatabaseNetwork.prepareStatement(deleteCommandStringForDatabase)) {
                 preparedStatementForExecutionCommand.executeUpdate();
             }
         } catch (SQLException exceptionFromDatabaseNetworkError) {
-            // Throw the data access exception so server handler gives 500 error code for bad connection
             throw new DataAccessException(exceptionFromDatabaseNetworkError.getMessage());
         }
     }

@@ -17,7 +17,8 @@ public class ClearServiceTests {
         MemoryUserDao userDaoToolForClearingTest = new MemoryUserDao();
         MemoryGameDao gameDaoToolForClearingTest = new MemoryGameDao();
         MemoryAuthDao authDaoToolForClearingTest = new MemoryAuthDao();
-        ClearService clearServiceLogicForTesting = new ClearService(userDaoToolForClearingTest, gameDaoToolForClearingTest, authDaoToolForClearingTest);
+        ClearService clearServiceLogicForTesting = new ClearService(userDaoToolForClearingTest,
+                gameDaoToolForClearingTest, authDaoToolForClearingTest);
 
         userDaoToolForClearingTest.createUser(new UserData("user", "pass", "email"));
         clearServiceLogicForTesting.clearEverything();

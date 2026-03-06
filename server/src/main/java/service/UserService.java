@@ -31,7 +31,9 @@ public class UserService {
      */
     public AuthData register(UserData userRequestObjectInformation) throws DataAccessException {
         // Checking if the information sent by user is bad request
-        if (userRequestObjectInformation.username() == null || userRequestObjectInformation.password() == null || userRequestObjectInformation.email() == null) {
+        if (userRequestObjectInformation.username() == null ||
+                userRequestObjectInformation.password() == null ||
+                userRequestObjectInformation.email() == null) {
             throw new DataAccessException("Error: bad request");
         }
 

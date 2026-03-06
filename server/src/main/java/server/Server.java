@@ -186,9 +186,11 @@ public class Server {
         // Checking if the error message is for bad request so we assign code 400
         if (messageInsideErrorStringValue != null && messageInsideErrorStringValue.contains("bad request")) {
             contextToUpdate.status(400);
-        } else if (messageInsideErrorStringValue != null && messageInsideErrorStringValue.contains("unauthorized")) { // Checking if the error message is for unauthorized so we assign code 401
+        } else if (messageInsideErrorStringValue != null && messageInsideErrorStringValue.contains("unauthorized")) {
+            // Checking if the error message is for unauthorized so we assign code 401
             contextToUpdate.status(401);
-        } else if (messageInsideErrorStringValue != null && messageInsideErrorStringValue.contains("already taken")) { // Checking if the error message is for taken spots so we assign code 403
+        } else if (messageInsideErrorStringValue != null && messageInsideErrorStringValue.contains("already taken")) {
+            // Checking if the error message is for taken spots so we assign code 403
             contextToUpdate.status(403);
         } else { // This else handles the 500 error code for database connection failure or unknown problem
             contextToUpdate.status(500);
