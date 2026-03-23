@@ -70,7 +70,7 @@ public class TerminalReplUserInterface { // This class keep program running aski
                 this.authorizationTokenStringFromServerResponse =
                         responseDataFromRegisterAction.authToken(); // Store token
                 this.isUserCurrentlyLoggedInBooleanStateTracker = true; // Set boolean
-                System.out.println("Registration is success for the user"); // Print success
+                System.out.println("Registration succeeded!"); // Print success
             } else { // Print error argument missing register
                 System.out.println("Please provide username password email"); // Print error
             }
@@ -84,7 +84,7 @@ public class TerminalReplUserInterface { // This class keep program running aski
                 this.authorizationTokenStringFromServerResponse =
                         responseDataFromLoginAction.authToken(); // Store token
                 this.isUserCurrentlyLoggedInBooleanStateTracker = true; // Set boolean
-                System.out.println("Login is success for the user"); // Print success
+                System.out.println("Login succeeded!"); // Print success
             } else { // Print error argument missing login
                 System.out.println("Please provide username password"); // Print error
             }
