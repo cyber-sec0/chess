@@ -44,6 +44,10 @@ public class ServerFacadeForHttpCalls { // This class is make to communicate wit
             GameDataObjectFormat[] games
     ) {} // Record for list games response to receive array
 
+    public record ErrorResponseDataFormat(
+            String message
+    ) {} // Record for parsing the error response body string
+
     public ServerFacadeForHttpCalls(int portNumberForServerConnectionArgument) { // This constructor set url
         this.serverUrlStringPathForConnection =
                 "http://localhost:" + portNumberForServerConnectionArgument; // Set the url string memory
@@ -147,8 +151,21 @@ public class ServerFacadeForHttpCalls { // This class is make to communicate wit
         httpConnectionObjectToServerProcess.connect(); // Connect to server address
         int responseCodeIntegerFromServerProcess =
                 httpConnectionObjectToServerProcess.getResponseCode(); // Get response code
-        if (responseCodeIntegerFromServerProcess >= 400) { // If code error throw exception message
-            throw new Exception("Error from server code: " + responseCodeIntegerFromServerProcess); // Throw
+        if (responseCodeIntegerFromServerProcess >= 400) { // If code error read error stream correctly
+            try (InputStream errorStreamObjectForReadingData =
+                         httpConnectionObjectToServerProcess.getErrorStream()) { // Try resources error
+                if (errorStreamObjectForReadingData != null) { // Check if error stream exist
+                    InputStreamReader errorReaderObjectForProcess =
+                            new InputStreamReader(errorStreamObjectForReadingData); // Create reader
+                    ErrorResponseDataFormat errorDataObjectParsed =
+                            this.gsonConverterObjectForJsonParsing.fromJson(
+                                    errorReaderObjectForProcess, ErrorResponseDataFormat.class
+                            ); // Parse error json
+                    throw new Exception(errorDataObjectParsed.message()); // Throw actual nice message
+                }
+            }
+            throw new Exception("Error from server code: "
+                    + responseCodeIntegerFromServerProcess); // Fallback generic throw
         }
         if (resClassTypeVal != null) { // If response class provide read stream parse json
             try (InputStream inputStreamObjectForReadingData =

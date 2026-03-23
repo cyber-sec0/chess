@@ -110,7 +110,7 @@ public class TerminalReplUserInterface { // This class keep program running aski
             ); // Call facade
             this.isUserCurrentlyLoggedInBooleanStateTracker = false; // Reset boolean
             this.authorizationTokenStringFromServerResponse = null; // Reset token
-            System.out.println("Logout is success for the user"); // Print success
+            System.out.println("Logout succeeded!"); // Print success
         } else if (commandStringMainArgument.equals("create")) { // If create game facade
             if (wordsArrayFullInputArgument.length >= 2) { // Check arg size create
                 ServerFacadeForHttpCalls.GameResponseDataFormat responseDataFromCreateAction =
@@ -118,7 +118,7 @@ public class TerminalReplUserInterface { // This class keep program running aski
                                 this.authorizationTokenStringFromServerResponse,
                                 wordsArrayFullInputArgument[1]
                         ); // Call facade
-                System.out.println("Game create is success with id: "
+                System.out.println("Game create succeeded with id: "
                         + responseDataFromCreateAction.gameID()); // Print success
             } else { // Print error argument missing create
                 System.out.println("Please provide the game name"); // Print error
@@ -139,51 +139,67 @@ public class TerminalReplUserInterface { // This class keep program running aski
                 indexIntegerTrackerForListPrint++; // Increment index
             }
         } else if (commandStringMainArgument.equals("play")) { // If play call facade draw
-            if (wordsArrayFullInputArgument.length >= 3
-                    && this.listOfGamesStoredArrayMemory != null) { // Check size array
-                int gameIndexIntegerTargetValue =
-                        Integer.parseInt(wordsArrayFullInputArgument[1]) - 1; // Parse int
-                if (gameIndexIntegerTargetValue >= 0
-                        && gameIndexIntegerTargetValue < this.listOfGamesStoredArrayMemory.length) { // Check bounds
-                    int actualGameIdIntegerNumberValue =
-                            this.listOfGamesStoredArrayMemory[gameIndexIntegerTargetValue].gameID(); // Get id
-                    String playerColorStringChoiceValue =
-                            wordsArrayFullInputArgument[2].toUpperCase(); // Get color
-                    this.serverFacadeObjectForHttpConnection.joinGameOnServer(
-                            this.authorizationTokenStringFromServerResponse,
-                            playerColorStringChoiceValue,
-                            actualGameIdIntegerNumberValue
-                    ); // Call facade
-                    System.out.println("Join game is success for user"); // Print success
-                    ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceMake =
-                            new ChessBoardDrawingUtility(); // Create utility
-                    if (playerColorStringChoiceValue.equals("BLACK")) { // If color black layout
-                        boardDrawingUtilityObjectInstanceMake.printBoardForBlackPerspectiveMode(); // Call black
-                    } else { // If color white print white layout
-                        boardDrawingUtilityObjectInstanceMake.printBoardForWhitePerspectiveMode(); // Call white
+            if (this.listOfGamesStoredArrayMemory == null) { // Check if list is empty array
+                System.out.println("Please run list command first to update array"); // Print error
+            } else if (wordsArrayFullInputArgument.length >= 3) { // Check size array inputs
+                try { // Try catch parse integer safely
+                    int gameIndexIntegerTargetValue =
+                            Integer.parseInt(wordsArrayFullInputArgument[1]) - 1; // Parse int
+                    if (gameIndexIntegerTargetValue >= 0) { // Check zero bounds
+                        if (gameIndexIntegerTargetValue < this.listOfGamesStoredArrayMemory.length) { // Check length
+                            int actualGameIdIntegerNumberValue =
+                                    this.listOfGamesStoredArrayMemory[gameIndexIntegerTargetValue].gameID(); // Get id
+                            String playerColorStringChoiceValue =
+                                    wordsArrayFullInputArgument[2].toUpperCase(); // Get color
+                            this.serverFacadeObjectForHttpConnection.joinGameOnServer(
+                                    this.authorizationTokenStringFromServerResponse,
+                                    playerColorStringChoiceValue,
+                                    actualGameIdIntegerNumberValue
+                            ); // Call facade
+                            System.out.println("Join game succeeded for user"); // Print success
+                            ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceMake =
+                                    new ChessBoardDrawingUtility(); // Create utility
+                            if (playerColorStringChoiceValue.equals("BLACK")) { // If color black
+                                boardDrawingUtilityObjectInstanceMake.printBoardForBlackPerspectiveMode(); // Call black
+                            } else { // If color white print white layout
+                                boardDrawingUtilityObjectInstanceMake.printBoardForWhitePerspectiveMode(); // Call white
+                            }
+                        } else { // Print error invalid index large
+                            System.out.println("Invalid game number provide out of bounds"); // Print error
+                        }
+                    } else { // Print error invalid index negative
+                        System.out.println("Invalid game number provide negative index"); // Print error
                     }
-                } else { // Print error invalid index
-                    System.out.println("Invalid game number provide"); // Print error
+                } catch (NumberFormatException numberExceptionObjectCaught) { // Catch string input
+                    System.out.println("Invalid game number provide not a numeric string"); // Print error
                 }
             } else { // Print error argument missing play
-                System.out.println("Please provide game number color list first"); // Print error
+                System.out.println("Please provide game number and color parameter"); // Print error
             }
         } else if (commandStringMainArgument.equals("observe")) { // If observe check draw
-            if (wordsArrayFullInputArgument.length >= 2
-                    && this.listOfGamesStoredArrayMemory != null) { // Check argument array
-                int gameIndexIntegerTargetObserveValue =
-                        Integer.parseInt(wordsArrayFullInputArgument[1]) - 1; // Parse index
-                if (gameIndexIntegerTargetObserveValue >= 0
-                        && gameIndexIntegerTargetObserveValue < this.listOfGamesStoredArrayMemory.length) { // Check bound
-                    System.out.println("Observe game is starting"); // Print start
-                    ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceForObserveAction =
-                            new ChessBoardDrawingUtility(); // Create utility
-                    boardDrawingUtilityObjectInstanceForObserveAction.printBoardForWhitePerspectiveMode(); // Call print
-                } else { // Print error invalid index
-                    System.out.println("Invalid game number provide"); // Print error
+            if (this.listOfGamesStoredArrayMemory == null) { // Check if list is empty array observe
+                System.out.println("Please run list command first to update array"); // Print error
+            } else if (wordsArrayFullInputArgument.length >= 2) { // Check argument array observe
+                try { // Try catch parse integer safely observe
+                    int gameIndexIntegerTargetObserveValue =
+                            Integer.parseInt(wordsArrayFullInputArgument[1]) - 1; // Parse index
+                    if (gameIndexIntegerTargetObserveValue >= 0) { // Check bound observe zero
+                        if (gameIndexIntegerTargetObserveValue < this.listOfGamesStoredArrayMemory.length) { // Check length
+                            System.out.println("Observe game is starting"); // Print start
+                            ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceForObserveAction =
+                                    new ChessBoardDrawingUtility(); // Create utility
+                            boardDrawingUtilityObjectInstanceForObserveAction.printBoardForWhitePerspectiveMode(); // Call print
+                        } else { // Print error invalid index observe large
+                            System.out.println("Invalid game number provide out of bounds"); // Print error
+                        }
+                    } else { // Print error invalid index observe negative
+                        System.out.println("Invalid game number provide negative index"); // Print error
+                    }
+                } catch (NumberFormatException numberExceptionObjectCaught) { // Catch string input observe
+                    System.out.println("Invalid game number provide not a numeric string"); // Print error
                 }
             } else { // Print error missing argument observe
-                System.out.println("Please provide game number list games first"); // Print error
+                System.out.println("Please provide game number numeric parameter"); // Print error
             }
         } else { // If command not exist print unknown
             System.out.println("Unknown command typed. Type help to options"); // Print unknown
