@@ -59,10 +59,12 @@ public class TerminalReplUserInterface { // This class keep program running aski
         if (commandStringMainArgument.equals("quit")) { // If quit return false stop
             return false; // Return false
         } else if (commandStringMainArgument.equals("help")) { // If help print text
-            System.out.println("help - Display this text informing actions"); // Print help
-            System.out.println("quit - Exit the program"); // Print help
-            System.out.println("login <user> <pass> - Login the user"); // Print help
-            System.out.println("register <user> <pass> <email> - Register new"); // Print help
+            String preLoginHelpMenuStringVariableForConsole =
+                    "help - Display this text informing actions\n"
+                            + "quit - Exit the program\n"
+                            + "login <user> <pass> - Login the user\n"
+                            + "register <user> <pass> <email> - Register new"; // Construct long text variable breaking line
+            System.out.println(preLoginHelpMenuStringVariableForConsole); // Print the whole menu string once safely
         } else if (commandStringMainArgument.equals("register")) { // If register call facade
             executeRegisterCommandUserLogic(wordsArrayFullInputArgument); // Call helper logic
         } else if (commandStringMainArgument.equals("login")) { // If login check argument
@@ -133,12 +135,14 @@ public class TerminalReplUserInterface { // This class keep program running aski
 
     private void executeHelpCommandToPrintMenuInstructions() {
         // This function simply print the post login help menu to the console screen safely
-        System.out.println("help - Display this text informing actions"); // Print help
-        System.out.println("logout - Log out the user"); // Print help
-        System.out.println("create <name> - Create a new game"); // Print help
-        System.out.println("list - List all the games"); // Print help
-        System.out.println("play <num> [WHITE|BLACK] - Join game play"); // Print help
-        System.out.println("observe <num> - Observe a game"); // Print help
+        String postLoginHelpMenuStringVariableForConsole =
+                "help - Display this text informing actions\n"
+                        + "logout - Log out the user\n"
+                        + "create <name> - Create a new game\n"
+                        + "list - List all the games\n"
+                        + "play <num> [WHITE|BLACK] - Join game play\n"
+                        + "observe <num> - Observe a game"; // Construct long text variable breaking line successfully
+        System.out.println(postLoginHelpMenuStringVariableForConsole); // Print the whole menu string once safely
     }
 
     private void executeLogoutCommandFromServerSession() throws Exception {
