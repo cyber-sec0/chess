@@ -5,50 +5,57 @@ import java.util.Scanner;
 /**
  * This class contain the user interface loop logic to read terminal commands.
  * The system parse string and decide what function to execute next step.
+ * It use the scanner object to read the text the user type in the keyboard.
+ * Then it process the string to connect with the server application.
  */
 public class TerminalReplUserInterface { // This class keep program running asking user inputs
-    private final ServerFacadeForHttpCalls serverFacadeObjectForHttpConnection; // Facade object store
-    private boolean isUserCurrentlyLoggedInBooleanStateTracker; // State tracker for login store
-    private String authorizationTokenStringFromServerResponse; // Token store here
-    private final Scanner scannerObjectForTerminalReadingInput; // Scanner object store string read
-    private ServerFacadeForHttpCalls.GameDataObjectFormat[] listOfGamesStoredArrayMemory; // Array store
+    private final ServerFacadeForHttpCalls serverFacadeObjectForHttpConnection;
+    private boolean isUserCurrentlyLoggedInBooleanStateTracker;
+    private String authorizationTokenStringFromServerResponse;
+    private final Scanner scannerObjectForTerminalReadingInput;
+    private ServerFacadeForHttpCalls.GameDataObjectFormat[] listOfGamesStoredArrayMemory;
 
-    public TerminalReplUserInterface(int portNumberForServerConnectionArgument) { // Constructor init
+    public TerminalReplUserInterface(int portNumberForServerConnectionArgument) { // Constructor init the facade and scanner
         this.serverFacadeObjectForHttpConnection =
-                new ServerFacadeForHttpCalls(portNumberForServerConnectionArgument); // Init facade
-        this.isUserCurrentlyLoggedInBooleanStateTracker = false; // Init boolean state
-        this.authorizationTokenStringFromServerResponse = null; // Init token string
-        this.scannerObjectForTerminalReadingInput = new Scanner(System.in); // Init scanner
+                new ServerFacadeForHttpCalls(portNumberForServerConnectionArgument);
+        this.isUserCurrentlyLoggedInBooleanStateTracker = false;
+        this.authorizationTokenStringFromServerResponse = null;
+        this.scannerObjectForTerminalReadingInput = new Scanner(System.in);
     }
 
+    /**
+     * This method is the main loop running the program terminal interface.
+     * The loop use do while logic to print the menu and wait the user type something.
+     * If the user type quit the loop change flag to false and program stop execution.
+     */
     public void runTheProgramLoop() { // Loop start here print welcome ask input
-        System.out.println("Welcome to the chess game application!"); // Print welcome
-        boolean keepRunningTheLoopBooleanFlag = true; // Init flag tracker
+        System.out.println("Welcome to the chess game application!");
+        boolean keepRunningTheLoopBooleanFlag = true;
         do { // Do while loop check login state show text menu
             if (this.isUserCurrentlyLoggedInBooleanStateTracker) { // If user log in show post
-                System.out.print("[LOGGED_IN] >>> "); // Print post login
+                System.out.print("[LOGGED_IN] >>> ");
             } else { // If user not log in show pre menu
-                System.out.print("[LOGGED_OUT] >>> "); // Print pre login
+                System.out.print("[LOGGED_OUT] >>> ");
             }
             String userCommandStringInputRaw =
-                    this.scannerObjectForTerminalReadingInput.nextLine(); // Read string
+                    this.scannerObjectForTerminalReadingInput.nextLine();
             String[] wordsArrayFromCommandStringSplit =
-                    userCommandStringInputRaw.split(" "); // Split string
+                    userCommandStringInputRaw.split(" ");
             String mainCommandStringWordLower =
-                    wordsArrayFromCommandStringSplit[0].toLowerCase(); // Get command
+                    wordsArrayFromCommandStringSplit[0].toLowerCase();
             try { // Try catch network call not crash
                 if (this.isUserCurrentlyLoggedInBooleanStateTracker) { // If log in call post
                     keepRunningTheLoopBooleanFlag = processPostLoginCommandString(
                             mainCommandStringWordLower, wordsArrayFromCommandStringSplit
-                    ); // Post process call
+                    );
                 } else { // If not log in call pre process
                     keepRunningTheLoopBooleanFlag = processPreLoginCommandString(
                             mainCommandStringWordLower, wordsArrayFromCommandStringSplit
-                    ); // Pre process call
+                    );
                 }
             } catch (Exception exceptionObjectCaughtFromExecutionRun) { // Catch print error
                 System.out.println("Error happened: "
-                        + exceptionObjectCaughtFromExecutionRun.getMessage()); // Print error
+                        + exceptionObjectCaughtFromExecutionRun.getMessage());
             }
         } while (keepRunningTheLoopBooleanFlag); // Loop until flag false
     }
@@ -57,203 +64,228 @@ public class TerminalReplUserInterface { // This class keep program running aski
             String commandStringMainArgument, String[] wordsArrayFullInputArgument
     ) throws Exception { // Process check string execute pre logic
         if (commandStringMainArgument.equals("quit")) { // If quit return false stop
-            return false; // Return false
+            return false;
         } else if (commandStringMainArgument.equals("help")) { // If help print text
             String preLoginHelpMenuStringVariableForConsole =
                     "help - Display this text informing actions\n"
                             + "quit - Exit the program\n"
                             + "login <user> <pass> - Login the user\n"
-                            + "register <user> <pass> <email> - Register new"; // Construct long text variable breaking line
-            System.out.println(preLoginHelpMenuStringVariableForConsole); // Print the whole menu string once safely
+                            + "register <user> <pass> <email> - Register new";
+            System.out.println(preLoginHelpMenuStringVariableForConsole);
         } else if (commandStringMainArgument.equals("register")) { // If register call facade
-            executeRegisterCommandUserLogic(wordsArrayFullInputArgument); // Call helper logic
+            executeRegisterCommandUserLogic(wordsArrayFullInputArgument);
         } else if (commandStringMainArgument.equals("login")) { // If login check argument
-            executeLoginCommandUserLogic(wordsArrayFullInputArgument); // Call helper logic
+            executeLoginCommandUserLogic(wordsArrayFullInputArgument);
         } else { // If command not exist print unknown
-            System.out.println("Unknown command typed. Type help to options"); // Print unknown
+            System.out.println("Unknown command typed. Type help to options");
         }
-        return true; // Return true keep loop
+        return true;
     }
 
+    /**
+     * This function extract the register connection out of the main loop.
+     * The code isolate the variables to avoid deep nesting structures making readability better.
+     */
     private void executeRegisterCommandUserLogic(
             String[] wordsArrayFullInputArgument
     ) throws Exception { // This function isolate register logic for clean code structure
         if (wordsArrayFullInputArgument.length < 4) { // If argument short print error return
-            System.out.println("Please provide username password email"); // Print error
-            return; // Early return avoid deep nesting
+            System.out.println("Please provide username password email");
+            return;
         }
         ServerFacadeForHttpCalls.AuthResponseDataFormat responseDataFromRegisterAction =
                 this.serverFacadeObjectForHttpConnection.registerUserOnServer(
                         wordsArrayFullInputArgument[1],
                         wordsArrayFullInputArgument[2],
                         wordsArrayFullInputArgument[3]
-                ); // Call facade to register
+                );
         this.authorizationTokenStringFromServerResponse =
-                responseDataFromRegisterAction.authToken(); // Store token session
-        this.isUserCurrentlyLoggedInBooleanStateTracker = true; // Set boolean to true
-        System.out.println("Registration success"); // Print success register
+                responseDataFromRegisterAction.authToken();
+        this.isUserCurrentlyLoggedInBooleanStateTracker = true;
+        System.out.println("Registration success");
     }
 
+    /**
+     * This function extract the login connection out of the main loop.
+     * The system need to protect the token response and change the boolean login tracker.
+     */
     private void executeLoginCommandUserLogic(
             String[] wordsArrayFullInputArgument
     ) throws Exception { // This function isolate login logic for clean code structure
         if (wordsArrayFullInputArgument.length < 3) { // If argument short print error return
-            System.out.println("Please provide username password"); // Print error
-            return; // Early return avoid deep nesting
+            System.out.println("Please provide username password");
+            return;
         }
         ServerFacadeForHttpCalls.AuthResponseDataFormat responseDataFromLoginAction =
                 this.serverFacadeObjectForHttpConnection.loginUserOnServer(
                         wordsArrayFullInputArgument[1],
                         wordsArrayFullInputArgument[2]
-                ); // Call facade to login
+                );
         this.authorizationTokenStringFromServerResponse =
-                responseDataFromLoginAction.authToken(); // Store token session
-        this.isUserCurrentlyLoggedInBooleanStateTracker = true; // Set boolean to true
-        System.out.println("Login success"); // Print success login
+                responseDataFromLoginAction.authToken();
+        this.isUserCurrentlyLoggedInBooleanStateTracker = true;
+        System.out.println("Login success");
     }
 
     private boolean processPostLoginCommandString(
             String commandStringMainArgument, String[] wordsArrayFullInputArgument
     ) throws Exception { // Process check string execute post logic decomposition
         if (commandStringMainArgument.equals("help")) { // If help print instructions
-            executeHelpCommandToPrintMenuInstructions(); // Call helper print
+            executeHelpCommandToPrintMenuInstructions();
         } else if (commandStringMainArgument.equals("logout")) { // If logout call facade
-            executeLogoutCommandFromServerSession(); // Call helper logout
+            executeLogoutCommandFromServerSession();
         } else if (commandStringMainArgument.equals("create")) { // If create game facade
-            executeCreateGameCommandToServerLogic(wordsArrayFullInputArgument); // Call helper create
+            executeCreateGameCommandToServerLogic(wordsArrayFullInputArgument);
         } else if (commandStringMainArgument.equals("list")) { // If list call facade array
-            executeListGamesCommandFromServerDatabase(); // Call helper list
+            executeListGamesCommandFromServerDatabase();
         } else if (commandStringMainArgument.equals("play")) { // If play call facade draw
-            executePlayGameCommandToJoinMatch(wordsArrayFullInputArgument); // Call helper play
+            executePlayGameCommandToJoinMatch(wordsArrayFullInputArgument);
         } else if (commandStringMainArgument.equals("observe")) { // If observe check draw
-            executeObserveGameCommandToWatchMatch(wordsArrayFullInputArgument); // Call helper observe
+            executeObserveGameCommandToWatchMatch(wordsArrayFullInputArgument);
         } else { // If command not exist print unknown
-            System.out.println("Unknown command typed. Type help to options"); // Print unknown
+            System.out.println("Unknown command typed. Type help to options");
         }
-        return true; // Return true keep loop
+        return true;
     }
 
-    private void executeHelpCommandToPrintMenuInstructions() {
-        // This function simply print the post login help menu to the console screen safely
+    /**
+     * This function hold the string variable for the menu when user already log inside.
+     */
+    private void executeHelpCommandToPrintMenuInstructions() { // This function print help
         String postLoginHelpMenuStringVariableForConsole =
                 "help - Display this text informing actions\n"
                         + "logout - Log out the user\n"
                         + "create <name> - Create a new game\n"
                         + "list - List all the games\n"
                         + "play <num> [WHITE|BLACK] - Join game play\n"
-                        + "observe <num> - Observe a game"; // Construct long text variable breaking line successfully
-        System.out.println(postLoginHelpMenuStringVariableForConsole); // Print the whole menu string once safely
+                        + "observe <num> - Observe a game";
+        System.out.println(postLoginHelpMenuStringVariableForConsole);
     }
 
-    private void executeLogoutCommandFromServerSession() throws Exception {
-        // This function send logout request and reset the local variables boolean state
+    /**
+     * This function process the logout operation using the authorization token stored in memory.
+     */
+    private void executeLogoutCommandFromServerSession() throws Exception { // This function execute logout
         this.serverFacadeObjectForHttpConnection.logoutUserOnServer(
                 this.authorizationTokenStringFromServerResponse
-        ); // Call facade execution
-        this.isUserCurrentlyLoggedInBooleanStateTracker = false; // Reset boolean false
-        this.authorizationTokenStringFromServerResponse = null; // Reset token null
-        System.out.println("Logout success"); // Print success message
+        );
+        this.isUserCurrentlyLoggedInBooleanStateTracker = false;
+        this.authorizationTokenStringFromServerResponse = null;
+        System.out.println("Logout success");
     }
 
+    /**
+     * This function make the request to start a new empty game match in the server database.
+     */
     private void executeCreateGameCommandToServerLogic(
             String[] wordsArrayFullInputArgument
-    ) throws Exception { // This function try to create game in server if arguments are correct
+    ) throws Exception { // This function try to create game in server
         if (wordsArrayFullInputArgument.length < 2) { // If arguments missing print error
-            System.out.println("Please provide the game name"); // Print error console
-            return; // Early return to prevent deep nested block
+            System.out.println("Please provide the game name");
+            return;
         }
         ServerFacadeForHttpCalls.GameResponseDataFormat responseDataFromCreateAction =
                 this.serverFacadeObjectForHttpConnection.createGameOnServer(
                         this.authorizationTokenStringFromServerResponse,
                         wordsArrayFullInputArgument[1]
-                ); // Call facade creation
+                );
         System.out.println("The new game has the id: "
-                + responseDataFromCreateAction.gameID()); // Print success creation
+                + responseDataFromCreateAction.gameID());
     }
 
-    private void executeListGamesCommandFromServerDatabase() throws Exception {
-        // This function list the games from server and save to memory array safely
+    /**
+     * This function call the api to list the games and reconstruct the array object locally.
+     */
+    private void executeListGamesCommandFromServerDatabase() throws Exception { // This function list games
         ServerFacadeForHttpCalls.ListGamesResponseDataFormat responseDataFromListAction =
                 this.serverFacadeObjectForHttpConnection.listGamesOnServer(
                         this.authorizationTokenStringFromServerResponse
-                ); // Call facade listing
-        this.listOfGamesStoredArrayMemory = responseDataFromListAction.games(); // Store array local
-        int indexIntegerTrackerForListPrint = 1; // Init index print numbering
+                );
+        this.listOfGamesStoredArrayMemory = responseDataFromListAction.games();
+        int indexIntegerTrackerForListPrint = 1;
         for (ServerFacadeForHttpCalls.GameDataObjectFormat gameLoopObjectItemArray :
                 this.listOfGamesStoredArrayMemory) { // Loop games print terminal iteration
             System.out.println(indexIntegerTrackerForListPrint + ". "
                     + gameLoopObjectItemArray.gameName() + " (White: "
                     + gameLoopObjectItemArray.whiteUsername() + ", Black: "
-                    + gameLoopObjectItemArray.blackUsername() + ")"); // Print game information row
-            indexIntegerTrackerForListPrint++; // Increment index print counter
+                    + gameLoopObjectItemArray.blackUsername() + ")");
+            indexIntegerTrackerForListPrint++;
         }
     }
 
+    /**
+     * This function try to play the match joining the black or white position slots.
+     * The string parsing is handle by a try catch block to avoid java crashes.
+     */
     private void executePlayGameCommandToJoinMatch(
             String[] wordsArrayFullInputArgument
-    ) throws Exception { // This function try to join the game using the array of words
+    ) throws Exception { // This function try to join the game
         if (this.listOfGamesStoredArrayMemory == null) { // If list is null user need to list first
-            System.out.println("Please run list command first to update array"); // Print error
-            return; // Early return guard clause
+            System.out.println("Please run list command first to update array");
+            return;
         }
         if (wordsArrayFullInputArgument.length < 3) { // If length is small argument is missing
-            System.out.println("Please provide game number and color parameter"); // Print error
-            return; // Early return guard clause
+            System.out.println("Please provide game number and color parameter");
+            return;
         }
         try { // Try catch the parse int so string do not crash program execution
             int gameIndexIntegerTargetValue =
-                    Integer.parseInt(wordsArrayFullInputArgument[1]) - 1; // Parse int text
+                    Integer.parseInt(wordsArrayFullInputArgument[1]) - 1;
             if (gameIndexIntegerTargetValue < 0
                     || gameIndexIntegerTargetValue >= this.listOfGamesStoredArrayMemory.length) { // Check bounds
-                System.out.println("Invalid game number provide out of bounds"); // Print error
-                return; // Early return guard clause bounds
+                System.out.println("Invalid game number provide out of bounds");
+                return;
             }
             int actualGameIdIntegerNumberValue =
-                    this.listOfGamesStoredArrayMemory[gameIndexIntegerTargetValue].gameID(); // Get id
+                    this.listOfGamesStoredArrayMemory[gameIndexIntegerTargetValue].gameID();
             String playerColorStringChoiceValue =
-                    wordsArrayFullInputArgument[2].toUpperCase(); // Get color uppercase
+                    wordsArrayFullInputArgument[2].toUpperCase();
             this.serverFacadeObjectForHttpConnection.joinGameOnServer(
                     this.authorizationTokenStringFromServerResponse,
                     playerColorStringChoiceValue, actualGameIdIntegerNumberValue
-            ); // Call facade connection
-            System.out.println("Join game success"); // Print success
+            );
+            System.out.println("Join game success");
             ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceMake =
-                    new ChessBoardDrawingUtility(); // Create utility
+                    new ChessBoardDrawingUtility();
             if (playerColorStringChoiceValue.equals("BLACK")) { // If color is black draw black
-                boardDrawingUtilityObjectInstanceMake.printBoardForBlackPerspectiveMode(); // Call black
+                boardDrawingUtilityObjectInstanceMake.printBoardForBlackPerspectiveMode();
             } else { // If color is white draw white board
-                boardDrawingUtilityObjectInstanceMake.printBoardForWhitePerspectiveMode(); // Call white
+                boardDrawingUtilityObjectInstanceMake.printBoardForWhitePerspectiveMode();
             }
         } catch (NumberFormatException numberExceptionObjectCaught) { // Catch string input
-            System.out.println("Invalid game number provide not a numeric string"); // Print error
+            System.out.println("Invalid game number provide not a numeric string");
         }
     }
 
+    /**
+     * This function process the observe game execution.
+     * It render the chess board graphics from the default white orientation layout.
+     */
     private void executeObserveGameCommandToWatchMatch(
             String[] wordsArrayFullInputArgument
-    ) { // This function try to observe the game using the array of words terminal
+    ) { // This function try to observe the game terminal
         if (this.listOfGamesStoredArrayMemory == null) { // If list is null user need to list
-            System.out.println("Please run list command first to update array"); // Print error
-            return; // Early return guard clause
+            System.out.println("Please run list command first to update array");
+            return;
         }
         if (wordsArrayFullInputArgument.length < 2) { // If length is small argument missing
-            System.out.println("Please provide game number numeric parameter"); // Print error
-            return; // Early return guard clause
+            System.out.println("Please provide game number numeric parameter");
+            return;
         }
         try { // Try catch the parse int so string do not crash program memory
             int gameIndexIntegerTargetObserveValue =
-                    Integer.parseInt(wordsArrayFullInputArgument[1]) - 1; // Parse index text
+                    Integer.parseInt(wordsArrayFullInputArgument[1]) - 1;
             if (gameIndexIntegerTargetObserveValue < 0
                     || gameIndexIntegerTargetObserveValue >= this.listOfGamesStoredArrayMemory.length) { // Check bounds
-                System.out.println("Invalid game number provide out of bounds"); // Print error
-                return; // Early return guard clause bounds
+                System.out.println("Invalid game number provide out of bounds");
+                return;
             }
-            System.out.println("Observe game is starting"); // Print start text successfully
+            System.out.println("Observe game is starting");
             ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceForObserveAction =
-                    new ChessBoardDrawingUtility(); // Create utility
-            boardDrawingUtilityObjectInstanceForObserveAction.printBoardForWhitePerspectiveMode(); // Call print
+                    new ChessBoardDrawingUtility();
+            boardDrawingUtilityObjectInstanceForObserveAction.printBoardForWhitePerspectiveMode();
         } catch (NumberFormatException numberExceptionObjectCaught) { // Catch string input
-            System.out.println("Invalid game number provide not a numeric string"); // Print error
+            System.out.println("Invalid game number provide not a numeric string");
         }
     }
 }
