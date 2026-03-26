@@ -1,68 +1,97 @@
 package client;
 
 import ui.EscapeSequences;
+import chess.ChessPosition;
 
-public class ChessBoardDrawingUtility { // This class is make to draw chess board terminal
+public class ChessBoardDrawingUtility { // This class is make to draw chess board terminal with color code
 
-    public void printBoardForWhitePerspectiveMode() { // This function print white perspective
+    public void printBoardForWhitePerspectiveMode(
+            java.util.Collection<ChessPosition> highlightsParamSet, ChessPosition startPosParamPoint
+    ) { // This function print white perspective visually
         drawTheBoardSquaresAndPiecesLoopHelperFunction(
-                8, 1, -1, 1, 8, 1
-        ); // Call helper logic for white view
+                8, 1, -1, 1, 8, 1, highlightsParamSet, startPosParamPoint
+        ); // Call helper logic for white view parameters
     }
 
-    public void printBoardForBlackPerspectiveMode() { // This function print black perspective
+    public void printBoardForBlackPerspectiveMode(
+            java.util.Collection<ChessPosition> highlightsParamSet, ChessPosition startPosParamPoint
+    ) { // This function print black perspective visually
         drawTheBoardSquaresAndPiecesLoopHelperFunction(
-                1, 8, 1, 8, 1, -1
-        ); // Call helper logic for black view
+                1, 8, 1, 8, 1, -1, highlightsParamSet, startPosParamPoint
+        ); // Call helper logic for black view parameters
     }
 
     private void drawTheBoardSquaresAndPiecesLoopHelperFunction(
             int startRowIntegerIndexRange, int endRowIntegerIndexRange,
             int rowDirectionIntegerStepValue, int startColumnIntegerIndexRange,
-            int endColumnIntegerIndexRange, int colDirectionIntegerStepValue
-    ) { // This function is make to loop the rows and columns to print colors terminal
+            int endColumnIntegerIndexRange, int colDirectionIntegerStepValue,
+            java.util.Collection<ChessPosition> highlightsParamSet, ChessPosition startPosParamPoint
+    ) { // This function is make to loop the rows and columns to print colors terminal gracefully
         printTheLettersHeaderRowHelperFunction(
-                startColumnIntegerIndexRange, endColumnIntegerIndexRange,
-                colDirectionIntegerStepValue
+                startColumnIntegerIndexRange, endColumnIntegerIndexRange, colDirectionIntegerStepValue
         ); // Call header print function
-        int currentRowIntegerTrackerLoopingState = startRowIntegerIndexRange; // Init row tracker
-        while (true) { // The while loop will iterate the rows until it reach bounds
+        int currentRowIntegerTrackerLoopingState = startRowIntegerIndexRange; // Init row tracker state
+        while (true) { // The while loop will iterate the rows until it reach bounds safely
             if (currentRowIntegerTrackerLoopingState == endRowIntegerIndexRange + rowDirectionIntegerStepValue) { // Check row bounds
-                break; // Break loop
+                break; // Break loop execution out
             }
             System.out.print(EscapeSequences.SET_BG_COLOR_LIGHT_GREY
-                    + EscapeSequences.SET_TEXT_COLOR_BLACK); // Set border color string
-            System.out.print(" " + currentRowIntegerTrackerLoopingState + " "); // Print row number
-            int currentColumnIntegerTrackerLoopingState = startColumnIntegerIndexRange; // Init column
-            while (true) { // The inner loop will iterate the columns until reach bounds
+                    + EscapeSequences.SET_TEXT_COLOR_BLACK); // Set border color string formatting
+            System.out.print(" " + currentRowIntegerTrackerLoopingState + " "); // Print row number explicitly
+            int currentColumnIntegerTrackerLoopingState = startColumnIntegerIndexRange; // Init column state tracking
+            while (true) { // The inner loop will iterate the columns until reach bounds cleanly
                 if (currentColumnIntegerTrackerLoopingState == endColumnIntegerIndexRange + colDirectionIntegerStepValue) { // Check col bounds
-                    break; // Break inner loop
+                    break; // Break inner loop safely
+                }
+                ChessPosition currentGridCoordinatePointPos =
+                        new ChessPosition(currentRowIntegerTrackerLoopingState, currentColumnIntegerTrackerLoopingState); // Make pos
+                boolean isSquareHighlightedInCollectionFlag = false; // Init highlight false
+                if (highlightsParamSet != null) { // If collection is not empty basically
+                    if (highlightsParamSet.contains(currentGridCoordinatePointPos)) { // If set contains pos mapping
+                        isSquareHighlightedInCollectionFlag = true; // Flag is true completely
+                    }
+                }
+                boolean isSquareStartingPointInCollectionFlag = false; // Init starting false
+                if (startPosParamPoint != null) { // If start point not empty
+                    if (startPosParamPoint.equals(currentGridCoordinatePointPos)) { // If start point matching
+                        isSquareStartingPointInCollectionFlag = true; // Flag is true reliably
+                    }
                 }
                 boolean isLightSquareBooleanFlagCheckRule =
                         (currentRowIntegerTrackerLoopingState + currentColumnIntegerTrackerLoopingState) % 2 != 0; // Calc color flag
-                if (isLightSquareBooleanFlagCheckRule) { // If sum is odd then light square color
-                    System.out.print(EscapeSequences.SET_BG_COLOR_WHITE); // Set light color background
-                } else { // If sum is even then dark square color code
-                    System.out.print(EscapeSequences.SET_BG_COLOR_BLACK); // Set dark color background
+                if (isSquareStartingPointInCollectionFlag) { // If starting square logic mapping
+                    System.out.print(EscapeSequences.SET_BG_COLOR_YELLOW); // Print yellow
+                } else if (isSquareHighlightedInCollectionFlag) { // If highlight logic condition
+                    if (isLightSquareBooleanFlagCheckRule) { // If highlight on light square specifically
+                        System.out.print(EscapeSequences.SET_BG_COLOR_GREEN); // Print green
+                    } else { // If highlight on dark square specifically
+                        System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREEN); // Print dark green
+                    }
+                } else { // If normal square logic rendering block
+                    if (isLightSquareBooleanFlagCheckRule) { // If sum is odd then light square color
+                        System.out.print(EscapeSequences.SET_BG_COLOR_WHITE); // Set light color background
+                    } else { // If sum is even then dark square color code explicitly
+                        System.out.print(EscapeSequences.SET_BG_COLOR_BLACK); // Set dark color background
+                    }
                 }
                 System.out.print(getInitialPieceStringForPositionCoordinate(
                         currentRowIntegerTrackerLoopingState, currentColumnIntegerTrackerLoopingState
-                )); // Print piece code
-                currentColumnIntegerTrackerLoopingState += colDirectionIntegerStepValue; // Increment
+                )); // Print piece code correctly
+                currentColumnIntegerTrackerLoopingState += colDirectionIntegerStepValue; // Increment column cleanly
             }
             System.out.print(EscapeSequences.SET_BG_COLOR_LIGHT_GREY
-                    + EscapeSequences.SET_TEXT_COLOR_BLACK); // Set border color
-            System.out.print(" " + currentRowIntegerTrackerLoopingState + " "); // Print row number
+                    + EscapeSequences.SET_TEXT_COLOR_BLACK); // Set border color string trailing
+            System.out.print(" " + currentRowIntegerTrackerLoopingState + " "); // Print row number Trailing cleanly
             System.out.println(EscapeSequences.RESET_BG_COLOR
-                    + EscapeSequences.RESET_TEXT_COLOR); // Reset color string
-            currentRowIntegerTrackerLoopingState += rowDirectionIntegerStepValue; // Increment row
+                    + EscapeSequences.RESET_TEXT_COLOR); // Reset color string explicitly newline
+            currentRowIntegerTrackerLoopingState += rowDirectionIntegerStepValue; // Increment row cleanly
         }
         printTheLettersHeaderRowHelperFunction(
-                startColumnIntegerIndexRange, endColumnIntegerIndexRange,
-                colDirectionIntegerStepValue
-        ); // Call footer print
+                startColumnIntegerIndexRange, endColumnIntegerIndexRange, colDirectionIntegerStepValue
+        ); // Call footer print gracefully
     }
 
+    // Keep the other helper methods (`printTheLettersHeaderRowHelperFunction`, `getInitialPieceStringForPositionCoordinate`) exactly as they were in Phase 5...
     private void printTheLettersHeaderRowHelperFunction(
             int startColumnIntegerIndexRange, int endColumnIntegerIndexRange,
             int colDirectionIntegerStepValue
