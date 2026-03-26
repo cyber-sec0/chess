@@ -4,168 +4,234 @@ import java.util.Scanner;
 
 /**
  * This class contain the user interface loop logic to read terminal commands.
- * The system parse string and decide what function to execute next step.
- * It use the scanner object to read the text the user type in the keyboard.
- * Then it process the string to connect with the server application.
+ * The system parse string and decide what function to execute next step explicitly.
+ * It use the scanner object to read the text the user type in the keyboard efficiently.
+ * Then it process the string to connect with the server application socket payload.
  */
-public class TerminalReplUserInterface { // This class keep program running asking user inputs
+public class TerminalReplUserInterface implements NotificationHandlerInterface { // This class keep program running asking user inputs
     private final ServerFacadeForHttpCalls serverFacadeObjectForHttpConnection;
+    private final int savedPortNumberMemoryTrackerVariable;
     private boolean isUserCurrentlyLoggedInBooleanStateTracker;
     private String authorizationTokenStringFromServerResponse;
     private final Scanner scannerObjectForTerminalReadingInput;
     private ServerFacadeForHttpCalls.GameDataObjectFormat[] listOfGamesStoredArrayMemory;
 
-    public TerminalReplUserInterface(int portNumberForServerConnectionArgument) { // Constructor init the facade and scanner
+    private boolean isUserCurrentlyInGameplayStateTrackerBoolean;
+    private String currentUserGameRoleColorPerspectiveStringTracker;
+    private int currentGameNumericIdActiveSessionValueTracker;
+    private chess.ChessGame currentGameStorageObjectMemoryInstance;
+    private WebSocketFacadeForGameConnection websocketFacadeForGameplayExecutionObject;
+
+    public TerminalReplUserInterface(
+            int portNumberForServerConnectionArgumentParam
+    ) { // Constructor init the facade and scanner cleanly
+        this.savedPortNumberMemoryTrackerVariable = portNumberForServerConnectionArgumentParam;
         this.serverFacadeObjectForHttpConnection =
-                new ServerFacadeForHttpCalls(portNumberForServerConnectionArgument);
+                new ServerFacadeForHttpCalls(portNumberForServerConnectionArgumentParam);
         this.isUserCurrentlyLoggedInBooleanStateTracker = false;
+        this.isUserCurrentlyInGameplayStateTrackerBoolean = false;
         this.authorizationTokenStringFromServerResponse = null;
         this.scannerObjectForTerminalReadingInput = new Scanner(System.in);
     }
 
-    /**
-     * This method is the main loop running the program terminal interface.
-     * The loop use do while logic to print the menu and wait the user type something.
-     * If the user type quit the loop change flag to false and program stop execution.
-     */
-    public void runTheProgramLoop() { // Loop start here print welcome ask input
+    public void runTheProgramLoop() { // Loop start here print welcome ask input text
         System.out.println("Welcome to the chess game application!");
-        boolean keepRunningTheLoopBooleanFlag = true;
-        do { // Do while loop check login state show text menu
-            if (this.isUserCurrentlyLoggedInBooleanStateTracker) { // If user log in show post
-                System.out.print("[LOGGED_IN] >>> ");
-            } else { // If user not log in show pre menu
-                System.out.print("[LOGGED_OUT] >>> ");
-            }
-            String userCommandStringInputRaw =
+        boolean keepRunningTheLoopBooleanFlagTracker = true;
+        do { // Do while loop check login state show text menu string
+            printCurrentTerminalPromptStringLogic();
+            String userCommandStringInputRawText =
                     this.scannerObjectForTerminalReadingInput.nextLine();
-            String[] wordsArrayFromCommandStringSplit =
-                    userCommandStringInputRaw.split(" ");
-            String mainCommandStringWordLower =
-                    wordsArrayFromCommandStringSplit[0].toLowerCase();
-            try { // Try catch network call not crash
-                if (this.isUserCurrentlyLoggedInBooleanStateTracker) { // If log in call post
-                    keepRunningTheLoopBooleanFlag = processPostLoginCommandString(
-                            mainCommandStringWordLower, wordsArrayFromCommandStringSplit
+            String[] wordsArrayFromCommandStringSplitText =
+                    userCommandStringInputRawText.split(" ");
+            String mainCommandStringWordLowerText =
+                    wordsArrayFromCommandStringSplitText[0].toLowerCase();
+            try { // Try catch network call not crash memory
+                if (this.isUserCurrentlyInGameplayStateTrackerBoolean) { // If in game
+                    keepRunningTheLoopBooleanFlagTracker = processInGameCommandStringSafely(
+                            mainCommandStringWordLowerText, wordsArrayFromCommandStringSplitText
                     );
-                } else { // If not log in call pre process
-                    keepRunningTheLoopBooleanFlag = processPreLoginCommandString(
-                            mainCommandStringWordLower, wordsArrayFromCommandStringSplit
+                } else if (this.isUserCurrentlyLoggedInBooleanStateTracker) { // If log in call post
+                    keepRunningTheLoopBooleanFlagTracker = processPostLoginCommandStringSafely(
+                            mainCommandStringWordLowerText, wordsArrayFromCommandStringSplitText
+                    );
+                } else { // If not log in call pre process explicitly
+                    keepRunningTheLoopBooleanFlagTracker = processPreLoginCommandStringSafely(
+                            mainCommandStringWordLowerText, wordsArrayFromCommandStringSplitText
                     );
                 }
-            } catch (Exception exceptionObjectCaughtFromExecutionRun) { // Catch print error
+            } catch (Exception exceptionObjectCaughtFromExecutionRunFlow) { // Catch print error
                 System.out.println("Error happened: "
-                        + exceptionObjectCaughtFromExecutionRun.getMessage());
+                        + exceptionObjectCaughtFromExecutionRunFlow.getMessage());
             }
-        } while (keepRunningTheLoopBooleanFlag); // Loop until flag false
+        } while (keepRunningTheLoopBooleanFlagTracker); // Loop until flag false exit
     }
 
-    private boolean processPreLoginCommandString(
-            String commandStringMainArgument, String[] wordsArrayFullInputArgument
+    private void printCurrentTerminalPromptStringLogic() { // Helper to reprint prompt cleanly state
+        if (this.isUserCurrentlyInGameplayStateTrackerBoolean) { // If in game state
+            System.out.print("\n[IN_GAME] >>> ");
+        } else if (this.isUserCurrentlyLoggedInBooleanStateTracker) { // If log in show post safely
+            System.out.print("\n[LOGGED_IN] >>> ");
+        } else { // If user not log in show pre menu safely
+            System.out.print("\n[LOGGED_OUT] >>> ");
+        }
+    }
+
+    @Override
+    public void notifyMessageFromServerAsynchronously(
+            String jsonMessagePayloadStringTextReceived
+    ) { // Override callback method execution efficiently
+        com.google.gson.Gson gsonParserObjectInstLocalVar = new com.google.gson.Gson(); // Init parser object local
+        websocket.messages.ServerMessage baseMessageObjParsedState = gsonParserObjectInstLocalVar.fromJson(
+                jsonMessagePayloadStringTextReceived, websocket.messages.ServerMessage.class
+        ); // Parse type safely
+        if (baseMessageObjParsedState.getServerMessageType() == websocket.messages.ServerMessage.ServerMessageType.LOAD_GAME) { // If load
+            websocket.messages.LoadGameMessage loadMessageObjParsedState = gsonParserObjectInstLocalVar.fromJson(
+                    jsonMessagePayloadStringTextReceived, websocket.messages.LoadGameMessage.class
+            ); // Parse full
+            this.currentGameStorageObjectMemoryInstance = loadMessageObjParsedState.game; // Save game locally
+            executeRedrawCommandToRefreshBoardGraphicsSafely(); // Call redraw helper execution
+        } else if (baseMessageObjParsedState.getServerMessageType() == websocket.messages.ServerMessage.ServerMessageType.ERROR) { // If error
+            websocket.messages.ErrorMessage errorMessageObjParsedState = gsonParserObjectInstLocalVar.fromJson(
+                    jsonMessagePayloadStringTextReceived, websocket.messages.ErrorMessage.class
+            ); // Parse full error
+            System.out.println("\n[SERVER_ERROR] " + errorMessageObjParsedState.errorMessage); // Print error explicitly
+            printCurrentTerminalPromptStringLogic(); // Reprint prompt inline execution
+        } else if (baseMessageObjParsedState.getServerMessageType() == websocket.messages.ServerMessage.ServerMessageType.NOTIFICATION) { // If notification
+            websocket.messages.NotificationMessage notificationMessageObjParsedState = gsonParserObjectInstLocalVar.fromJson(
+                    jsonMessagePayloadStringTextReceived, websocket.messages.NotificationMessage.class
+            ); // Parse full notification
+            System.out.println("\n[SERVER_NOTIFICATION] " + notificationMessageObjParsedState.message); // Print notification explicitly
+            printCurrentTerminalPromptStringLogic(); // Reprint prompt inline execution
+        }
+    }
+
+    private boolean processPreLoginCommandStringSafely(
+            String commandStringMainArgumentParam, String[] wordsArrayFullInputArgumentParam
     ) throws Exception { // Process check string execute pre logic
-        if (commandStringMainArgument.equals("quit")) { // If quit return false stop
+        if (commandStringMainArgumentParam.equals("quit")) { // If quit return false stop
             return false;
-        } else if (commandStringMainArgument.equals("help")) { // If help print text
-            String preLoginHelpMenuStringVariableForConsole =
+        } else if (commandStringMainArgumentParam.equals("help")) { // If help print text
+            String preLoginHelpMenuStringVariableForConsoleObject =
                     "help - Display this text informing actions\n"
                             + "quit - Exit the program\n"
                             + "login <user> <pass> - Login the user\n"
                             + "register <user> <pass> <email> - Register new";
-            System.out.println(preLoginHelpMenuStringVariableForConsole);
-        } else if (commandStringMainArgument.equals("register")) { // If register call facade
-            executeRegisterCommandUserLogic(wordsArrayFullInputArgument);
-        } else if (commandStringMainArgument.equals("login")) { // If login check argument
-            executeLoginCommandUserLogic(wordsArrayFullInputArgument);
-        } else { // If command not exist print unknown
+            System.out.println(preLoginHelpMenuStringVariableForConsoleObject);
+        } else if (commandStringMainArgumentParam.equals("register")) { // If register call facade
+            executeRegisterCommandUserLogicSafely(wordsArrayFullInputArgumentParam);
+        } else if (commandStringMainArgumentParam.equals("login")) { // If login check argument
+            executeLoginCommandUserLogicSafely(wordsArrayFullInputArgumentParam);
+        } else { // If command not exist print unknown explicitly
             System.out.println("Unknown command typed. Type help to options");
         }
         return true;
     }
 
-    /**
-     * This function extract the register connection out of the main loop.
-     * The code isolate the variables to avoid deep nesting structures making readability better.
-     */
-    private void executeRegisterCommandUserLogic(
-            String[] wordsArrayFullInputArgument
+    private void executeRegisterCommandUserLogicSafely(
+            String[] wordsArrayFullInputArgumentParam
     ) throws Exception { // This function isolate register logic for clean code structure
-        if (wordsArrayFullInputArgument.length < 4) { // If argument short print error return
+        if (wordsArrayFullInputArgumentParam.length < 4) { // If argument short print error return
             System.out.println("Please provide username password email");
             return;
         }
-        ServerFacadeForHttpCalls.AuthResponseDataFormat responseDataFromRegisterAction =
+        ServerFacadeForHttpCalls.AuthResponseDataFormat responseDataFromRegisterActionObject =
                 this.serverFacadeObjectForHttpConnection.registerUserOnServer(
-                        wordsArrayFullInputArgument[1],
-                        wordsArrayFullInputArgument[2],
-                        wordsArrayFullInputArgument[3]
+                        wordsArrayFullInputArgumentParam[1],
+                        wordsArrayFullInputArgumentParam[2],
+                        wordsArrayFullInputArgumentParam[3]
                 );
         this.authorizationTokenStringFromServerResponse =
-                responseDataFromRegisterAction.authToken();
+                responseDataFromRegisterActionObject.authToken();
         this.isUserCurrentlyLoggedInBooleanStateTracker = true;
         System.out.println("Registration success");
     }
 
-    /**
-     * This function extract the login connection out of the main loop.
-     * The system need to protect the token response and change the boolean login tracker.
-     */
-    private void executeLoginCommandUserLogic(
-            String[] wordsArrayFullInputArgument
+    private void executeLoginCommandUserLogicSafely(
+            String[] wordsArrayFullInputArgumentParam
     ) throws Exception { // This function isolate login logic for clean code structure
-        if (wordsArrayFullInputArgument.length < 3) { // If argument short print error return
+        if (wordsArrayFullInputArgumentParam.length < 3) { // If argument short print error return
             System.out.println("Please provide username password");
             return;
         }
-        ServerFacadeForHttpCalls.AuthResponseDataFormat responseDataFromLoginAction =
+        ServerFacadeForHttpCalls.AuthResponseDataFormat responseDataFromLoginActionObject =
                 this.serverFacadeObjectForHttpConnection.loginUserOnServer(
-                        wordsArrayFullInputArgument[1],
-                        wordsArrayFullInputArgument[2]
+                        wordsArrayFullInputArgumentParam[1],
+                        wordsArrayFullInputArgumentParam[2]
                 );
         this.authorizationTokenStringFromServerResponse =
-                responseDataFromLoginAction.authToken();
+                responseDataFromLoginActionObject.authToken();
         this.isUserCurrentlyLoggedInBooleanStateTracker = true;
         System.out.println("Login success");
     }
 
-    private boolean processPostLoginCommandString(
-            String commandStringMainArgument, String[] wordsArrayFullInputArgument
+    private boolean processPostLoginCommandStringSafely(
+            String commandStringMainArgumentParam, String[] wordsArrayFullInputArgumentParam
     ) throws Exception { // Process check string execute post logic decomposition
-        if (commandStringMainArgument.equals("help")) { // If help print instructions
-            executeHelpCommandToPrintMenuInstructions();
-        } else if (commandStringMainArgument.equals("logout")) { // If logout call facade
-            executeLogoutCommandFromServerSession();
-        } else if (commandStringMainArgument.equals("create")) { // If create game facade
-            executeCreateGameCommandToServerLogic(wordsArrayFullInputArgument);
-        } else if (commandStringMainArgument.equals("list")) { // If list call facade array
-            executeListGamesCommandFromServerDatabase();
-        } else if (commandStringMainArgument.equals("play")) { // If play call facade draw
-            executePlayGameCommandToJoinMatch(wordsArrayFullInputArgument);
-        } else if (commandStringMainArgument.equals("observe")) { // If observe check draw
-            executeObserveGameCommandToWatchMatch(wordsArrayFullInputArgument);
-        } else { // If command not exist print unknown
+        if (commandStringMainArgumentParam.equals("help")) { // If help print instructions
+            executeHelpCommandToPrintMenuInstructionsSafely();
+        } else if (commandStringMainArgumentParam.equals("logout")) { // If logout call facade
+            executeLogoutCommandFromServerSessionSafely();
+        } else if (commandStringMainArgumentParam.equals("create")) { // If create game facade
+            executeCreateGameCommandToServerLogicSafely(wordsArrayFullInputArgumentParam);
+        } else if (commandStringMainArgumentParam.equals("list")) { // If list call facade array
+            executeListGamesCommandFromServerDatabaseSafely();
+        } else if (commandStringMainArgumentParam.equals("play")) { // If play call facade draw
+            executePlayGameCommandToJoinMatchSafely(wordsArrayFullInputArgumentParam);
+        } else if (commandStringMainArgumentParam.equals("observe")) { // If observe check draw
+            executeObserveGameCommandToWatchMatchSafely(wordsArrayFullInputArgumentParam);
+        } else { // If command not exist print unknown explicitly
             System.out.println("Unknown command typed. Type help to options");
         }
         return true;
     }
 
-    /**
-     * This function hold the string variable for the menu when user already log inside.
-     */
-    private void executeHelpCommandToPrintMenuInstructions() { // This function print help
-        String postLoginHelpMenuStringVariableForConsole =
+    private boolean processInGameCommandStringSafely(
+            String commandStringMainArgumentParam, String[] wordsArrayFullInputArgumentParam
+    ) throws Exception { // Process check string execute in game logic decomposition
+        if (commandStringMainArgumentParam.equals("help")) { // If help print instructions locally
+            executeHelpCommandToPrintGameplayInstructionsSafely();
+        } else if (commandStringMainArgumentParam.equals("leave")) { // If leave call facade socket
+            executeLeaveGameCommandToExitSessionSafely();
+        } else if (commandStringMainArgumentParam.equals("resign")) { // If resign facade socket
+            executeResignGameCommandToForfeitMatchSafely();
+        } else if (commandStringMainArgumentParam.equals("redraw")) { // If redraw print locally memory
+            executeRedrawCommandToRefreshBoardGraphicsSafely();
+        } else if (commandStringMainArgumentParam.equals("move")) { // If move call facade move socket
+            executeMakeMoveCommandToProcessActionSafely(wordsArrayFullInputArgumentParam);
+        } else if (commandStringMainArgumentParam.equals("highlight")) { // If highlight check calculate memory
+            executeHighlightCommandToShowLegalMovesSafely(wordsArrayFullInputArgumentParam);
+        } else { // If command not exist print unknown explicitly
+            System.out.println("Unknown command typed. Type help to options");
+        }
+        return true;
+    }
+
+    private void executeHelpCommandToPrintMenuInstructionsSafely() {
+        // This function simply print the post login help menu to the console screen safely
+        String postLoginHelpMenuStringVariableForConsoleObject =
                 "help - Display this text informing actions\n"
                         + "logout - Log out the user\n"
                         + "create <name> - Create a new game\n"
                         + "list - List all the games\n"
                         + "play <num> [WHITE|BLACK] - Join game play\n"
                         + "observe <num> - Observe a game";
-        System.out.println(postLoginHelpMenuStringVariableForConsole);
+        System.out.println(postLoginHelpMenuStringVariableForConsoleObject);
     }
 
-    /**
-     * This function process the logout operation using the authorization token stored in memory.
-     */
-    private void executeLogoutCommandFromServerSession() throws Exception { // This function execute logout
+    private void executeHelpCommandToPrintGameplayInstructionsSafely() {
+        // This function simply print the in game help menu to the console screen safely
+        String inGameHelpMenuStringVariableForConsoleObject =
+                "help - Display this text informing actions\n"
+                        + "redraw - Redraw the chess board locally\n"
+                        + "leave - Leave the game session\n"
+                        + "move <start> <end> - Make a piece move (e.g. move e2 e4)\n"
+                        + "resign - Forfeit the match\n"
+                        + "highlight <pos> - Highlight legal moves for a piece (e.g. highlight e2)";
+        System.out.println(inGameHelpMenuStringVariableForConsoleObject);
+    }
+
+    private void executeLogoutCommandFromServerSessionSafely() throws Exception {
+        // This function send logout request and reset the local variables boolean state
         this.serverFacadeObjectForHttpConnection.logoutUserOnServer(
                 this.authorizationTokenStringFromServerResponse
         );
@@ -174,118 +240,255 @@ public class TerminalReplUserInterface { // This class keep program running aski
         System.out.println("Logout success");
     }
 
-    /**
-     * This function make the request to start a new empty game match in the server database.
-     */
-    private void executeCreateGameCommandToServerLogic(
-            String[] wordsArrayFullInputArgument
-    ) throws Exception { // This function try to create game in server
-        if (wordsArrayFullInputArgument.length < 2) { // If arguments missing print error
+    private void executeCreateGameCommandToServerLogicSafely(
+            String[] wordsArrayFullInputArgumentParam
+    ) throws Exception { // This function try to create game in server safely
+        if (wordsArrayFullInputArgumentParam.length < 2) { // If arguments missing print error
             System.out.println("Please provide the game name");
             return;
         }
-        ServerFacadeForHttpCalls.GameResponseDataFormat responseDataFromCreateAction =
+        ServerFacadeForHttpCalls.GameResponseDataFormat responseDataFromCreateActionObject =
                 this.serverFacadeObjectForHttpConnection.createGameOnServer(
                         this.authorizationTokenStringFromServerResponse,
-                        wordsArrayFullInputArgument[1]
+                        wordsArrayFullInputArgumentParam[1]
                 );
         System.out.println("The new game has the id: "
-                + responseDataFromCreateAction.gameID());
+                + responseDataFromCreateActionObject.gameID());
     }
 
-    /**
-     * This function call the api to list the games and reconstruct the array object locally.
-     */
-    private void executeListGamesCommandFromServerDatabase() throws Exception { // This function list games
-        ServerFacadeForHttpCalls.ListGamesResponseDataFormat responseDataFromListAction =
+    private void executeListGamesCommandFromServerDatabaseSafely() throws Exception {
+        // This function list the games from server and save to memory array safely
+        ServerFacadeForHttpCalls.ListGamesResponseDataFormat responseDataFromListActionObject =
                 this.serverFacadeObjectForHttpConnection.listGamesOnServer(
                         this.authorizationTokenStringFromServerResponse
                 );
-        this.listOfGamesStoredArrayMemory = responseDataFromListAction.games();
-        int indexIntegerTrackerForListPrint = 1;
-        for (ServerFacadeForHttpCalls.GameDataObjectFormat gameLoopObjectItemArray :
+        this.listOfGamesStoredArrayMemory = responseDataFromListActionObject.games();
+        int indexIntegerTrackerForListPrintLocal = 1;
+        for (ServerFacadeForHttpCalls.GameDataObjectFormat gameLoopObjectItemArrayLoop :
                 this.listOfGamesStoredArrayMemory) { // Loop games print terminal iteration
-            System.out.println(indexIntegerTrackerForListPrint + ". "
-                    + gameLoopObjectItemArray.gameName() + " (White: "
-                    + gameLoopObjectItemArray.whiteUsername() + ", Black: "
-                    + gameLoopObjectItemArray.blackUsername() + ")");
-            indexIntegerTrackerForListPrint++;
+            System.out.println(indexIntegerTrackerForListPrintLocal + ". "
+                    + gameLoopObjectItemArrayLoop.gameName() + " (White: "
+                    + gameLoopObjectItemArrayLoop.whiteUsername() + ", Black: "
+                    + gameLoopObjectItemArrayLoop.blackUsername() + ")");
+            indexIntegerTrackerForListPrintLocal++;
         }
     }
 
-    /**
-     * This function try to play the match joining the black or white position slots.
-     * The string parsing is handle by a try catch block to avoid java crashes.
-     */
-    private void executePlayGameCommandToJoinMatch(
-            String[] wordsArrayFullInputArgument
-    ) throws Exception { // This function try to join the game
+    private void executePlayGameCommandToJoinMatchSafely(
+            String[] wordsArrayFullInputArgumentParam
+    ) throws Exception { // This function try to join the game using socket flow
         if (this.listOfGamesStoredArrayMemory == null) { // If list is null user need to list first
             System.out.println("Please run list command first to update array");
             return;
         }
-        if (wordsArrayFullInputArgument.length < 3) { // If length is small argument is missing
+        if (wordsArrayFullInputArgumentParam.length < 3) { // If length is small argument is missing
             System.out.println("Please provide game number and color parameter");
             return;
         }
         try { // Try catch the parse int so string do not crash program execution
-            int gameIndexIntegerTargetValue =
-                    Integer.parseInt(wordsArrayFullInputArgument[1]) - 1;
-            if (gameIndexIntegerTargetValue < 0
-                    || gameIndexIntegerTargetValue >= this.listOfGamesStoredArrayMemory.length) { // Check bounds
+            int gameIndexIntegerTargetValueParsed =
+                    Integer.parseInt(wordsArrayFullInputArgumentParam[1]) - 1;
+            if (gameIndexIntegerTargetValueParsed < 0
+                    || gameIndexIntegerTargetValueParsed >= this.listOfGamesStoredArrayMemory.length) { // Check bounds
                 System.out.println("Invalid game number provide out of bounds");
                 return;
             }
-            int actualGameIdIntegerNumberValue =
-                    this.listOfGamesStoredArrayMemory[gameIndexIntegerTargetValue].gameID();
-            String playerColorStringChoiceValue =
-                    wordsArrayFullInputArgument[2].toUpperCase();
+            int actualGameIdIntegerNumberValueExtracted =
+                    this.listOfGamesStoredArrayMemory[gameIndexIntegerTargetValueParsed].gameID();
+            String playerColorStringChoiceValueParsed =
+                    wordsArrayFullInputArgumentParam[2].toUpperCase();
             this.serverFacadeObjectForHttpConnection.joinGameOnServer(
                     this.authorizationTokenStringFromServerResponse,
-                    playerColorStringChoiceValue, actualGameIdIntegerNumberValue
-            );
-            System.out.println("Join game success");
-            ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceMake =
-                    new ChessBoardDrawingUtility();
-            if (playerColorStringChoiceValue.equals("BLACK")) { // If color is black draw black
-                boardDrawingUtilityObjectInstanceMake.printBoardForBlackPerspectiveMode();
-            } else { // If color is white draw white board
-                boardDrawingUtilityObjectInstanceMake.printBoardForWhitePerspectiveMode();
-            }
-        } catch (NumberFormatException numberExceptionObjectCaught) { // Catch string input
+                    playerColorStringChoiceValueParsed, actualGameIdIntegerNumberValueExtracted
+            ); // Call http connection initially
+
+            this.websocketFacadeForGameplayExecutionObject = new WebSocketFacadeForGameConnection(
+                    "http://localhost:" + this.savedPortNumberMemoryTrackerVariable, this
+            ); // Init websocket facade dynamically
+
+            websocket.commands.UserGameCommand connectCommandObjectInstance =
+                    new websocket.commands.UserGameCommand(
+                            websocket.commands.UserGameCommand.CommandType.CONNECT,
+                            this.authorizationTokenStringFromServerResponse,
+                            actualGameIdIntegerNumberValueExtracted
+                    ); // Create connect command securely
+
+            String stringPayloadConvertedDataToSend = new com.google.gson.Gson().toJson(connectCommandObjectInstance); // Convert
+            this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(stringPayloadConvertedDataToSend); // Send socket
+
+            this.isUserCurrentlyInGameplayStateTrackerBoolean = true; // State change
+            this.currentGameNumericIdActiveSessionValueTracker = actualGameIdIntegerNumberValueExtracted; // Save track
+            this.currentUserGameRoleColorPerspectiveStringTracker = playerColorStringChoiceValueParsed; // Save track explicitly
+            System.out.println("Join game success connection started");
+        } catch (NumberFormatException numberExceptionObjectCaughtFlow) { // Catch string input explicitly
             System.out.println("Invalid game number provide not a numeric string");
         }
     }
 
-    /**
-     * This function process the observe game execution.
-     * It render the chess board graphics from the default white orientation layout.
-     */
-    private void executeObserveGameCommandToWatchMatch(
-            String[] wordsArrayFullInputArgument
-    ) { // This function try to observe the game terminal
+    private void executeObserveGameCommandToWatchMatchSafely(
+            String[] wordsArrayFullInputArgumentParam
+    ) { // This function try to observe the game using socket flow terminal
         if (this.listOfGamesStoredArrayMemory == null) { // If list is null user need to list
             System.out.println("Please run list command first to update array");
             return;
         }
-        if (wordsArrayFullInputArgument.length < 2) { // If length is small argument missing
+        if (wordsArrayFullInputArgumentParam.length < 2) { // If length is small argument missing
             System.out.println("Please provide game number numeric parameter");
             return;
         }
         try { // Try catch the parse int so string do not crash program memory
-            int gameIndexIntegerTargetObserveValue =
-                    Integer.parseInt(wordsArrayFullInputArgument[1]) - 1;
-            if (gameIndexIntegerTargetObserveValue < 0
-                    || gameIndexIntegerTargetObserveValue >= this.listOfGamesStoredArrayMemory.length) { // Check bounds
+            int gameIndexIntegerTargetObserveValueParsed =
+                    Integer.parseInt(wordsArrayFullInputArgumentParam[1]) - 1;
+            if (gameIndexIntegerTargetObserveValueParsed < 0
+                    || gameIndexIntegerTargetObserveValueParsed >= this.listOfGamesStoredArrayMemory.length) { // Check bounds
                 System.out.println("Invalid game number provide out of bounds");
                 return;
             }
-            System.out.println("Observe game is starting");
-            ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceForObserveAction =
-                    new ChessBoardDrawingUtility();
-            boardDrawingUtilityObjectInstanceForObserveAction.printBoardForWhitePerspectiveMode();
-        } catch (NumberFormatException numberExceptionObjectCaught) { // Catch string input
-            System.out.println("Invalid game number provide not a numeric string");
+            int actualGameIdIntegerNumberValueExtracted =
+                    this.listOfGamesStoredArrayMemory[gameIndexIntegerTargetObserveValueParsed].gameID();
+
+            this.websocketFacadeForGameplayExecutionObject = new WebSocketFacadeForGameConnection(
+                    "http://localhost:" + this.savedPortNumberMemoryTrackerVariable, this
+            ); // Init websocket facade dynamically
+
+            websocket.commands.UserGameCommand connectCommandObjectInstance =
+                    new websocket.commands.UserGameCommand(
+                            websocket.commands.UserGameCommand.CommandType.CONNECT,
+                            this.authorizationTokenStringFromServerResponse,
+                            actualGameIdIntegerNumberValueExtracted
+                    ); // Create connect command securely
+
+            String stringPayloadConvertedDataToSend = new com.google.gson.Gson().toJson(connectCommandObjectInstance); // Convert
+            this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(stringPayloadConvertedDataToSend); // Send socket
+
+            this.isUserCurrentlyInGameplayStateTrackerBoolean = true; // State change observer
+            this.currentGameNumericIdActiveSessionValueTracker = actualGameIdIntegerNumberValueExtracted; // Save track explicitly
+            this.currentUserGameRoleColorPerspectiveStringTracker = "OBSERVER"; // Save observer implicitly
+            System.out.println("Observe game is starting connection requested");
+        } catch (Exception exceptionObjectCaughtFlow) { // Catch string input safely
+            System.out.println("Invalid execution happen provide not a numeric string");
+        }
+    }
+
+    private void executeLeaveGameCommandToExitSessionSafely() throws Exception {
+        // This function send leave request and reset the local variables boolean state game
+        websocket.commands.UserGameCommand leaveCommandObjectInstance =
+                new websocket.commands.UserGameCommand(
+                        websocket.commands.UserGameCommand.CommandType.LEAVE,
+                        this.authorizationTokenStringFromServerResponse,
+                        this.currentGameNumericIdActiveSessionValueTracker
+                ); // Create leave command securely
+
+        String stringPayloadConvertedDataToSend = new com.google.gson.Gson().toJson(leaveCommandObjectInstance); // Convert cleanly
+        this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(stringPayloadConvertedDataToSend); // Send socket explicitly
+
+        this.isUserCurrentlyInGameplayStateTrackerBoolean = false; // Reset boolean false explicitly
+        this.currentGameStorageObjectMemoryInstance = null; // Reset board null reliably
+        System.out.println("Leave game success session exit safely"); // Print success message
+    }
+
+    private void executeResignGameCommandToForfeitMatchSafely() throws Exception {
+        // This function send resign request after reading terminal confirmation specifically
+        System.out.println("Are you sure you want to resign forfeit? type 'yes' to confirm"); // Print confirm cleanly
+        String confirmStringInputRawUserResponse = this.scannerObjectForTerminalReadingInput.nextLine(); // Read confirm text
+        if (confirmStringInputRawUserResponse.toLowerCase().equals("yes")) { // If confirm yes
+            websocket.commands.UserGameCommand resignCommandObjectInstance =
+                    new websocket.commands.UserGameCommand(
+                            websocket.commands.UserGameCommand.CommandType.RESIGN,
+                            this.authorizationTokenStringFromServerResponse,
+                            this.currentGameNumericIdActiveSessionValueTracker
+                    ); // Create resign command reliably
+
+            String stringPayloadConvertedDataToSend = new com.google.gson.Gson().toJson(resignCommandObjectInstance); // Convert cleanly
+            this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(stringPayloadConvertedDataToSend); // Send socket explicitly
+        } else { // If not confirm exit procedure safely
+            System.out.println("Resign action cancelled safely completely"); // Print cancel output explicitly
+        }
+    }
+
+    private void executeRedrawCommandToRefreshBoardGraphicsSafely() { // This function refresh graphics explicitly
+        if (this.currentGameStorageObjectMemoryInstance == null) { // If game not loaded fail explicitly
+            System.out.println("Game state not loaded yet please wait"); // Print error
+            return; // Early return stop flow completely
+        }
+        ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceMakeRendering =
+                new ChessBoardDrawingUtility(); // Create utility
+        if (this.currentUserGameRoleColorPerspectiveStringTracker.equals("BLACK")) { // If color is black draw black cleanly
+            boardDrawingUtilityObjectInstanceMakeRendering.printBoardForBlackPerspectiveMode(null, null); // Call black no highlights
+        } else { // If color is white draw white board cleanly
+            boardDrawingUtilityObjectInstanceMakeRendering.printBoardForWhitePerspectiveMode(null, null); // Call white no highlights
+        }
+    }
+
+    private chess.ChessPosition parsePositionStringFromInputTextSafely(String posStrParam) { // Parse coordinate safely algorithm
+        if (posStrParam.length() < 2) { // If small throw fail explicit
+            return null; // Return null
+        }
+        char colCharAlphaText = Character.toLowerCase(posStrParam.charAt(0)); // Get col alpha
+        char rowCharNumericText = posStrParam.charAt(1); // Get row num text
+        int colNumIndexValue = colCharAlphaText - 'a' + 1; // Calc col index cleanly
+        int rowNumIndexValue = rowCharNumericText - '0'; // Calc row index cleanly
+        return new chess.ChessPosition(rowNumIndexValue, colNumIndexValue); // Return position cleanly setup
+    }
+
+    private void executeMakeMoveCommandToProcessActionSafely(
+            String[] wordsArrayFullInputArgumentParam
+    ) throws Exception { // This function extract string positions and send to facade explicitly
+        if (wordsArrayFullInputArgumentParam.length < 3) { // If missing params
+            System.out.println("Please provide move start and end coordinate parameter"); // Print error
+            return; // Early return stop cleanly
+        }
+        chess.ChessPosition startPosCoordinatePoint = parsePositionStringFromInputTextSafely(wordsArrayFullInputArgumentParam[1]); // Parse start
+        chess.ChessPosition endPosCoordinatePoint = parsePositionStringFromInputTextSafely(wordsArrayFullInputArgumentParam[2]); // Parse end explicitly
+        if (startPosCoordinatePoint == null || endPosCoordinatePoint == null) { // If fail validation format
+            System.out.println("Invalid position format try notation"); // Print error
+            return; // Early return stop logic completely
+        }
+        chess.ChessMove newMoveObjectPayloadAction = new chess.ChessMove(startPosCoordinatePoint, endPosCoordinatePoint, null); // Set move cleanly logic
+        websocket.commands.MakeMoveCommand makeMoveCommandObjectInstance = new websocket.commands.MakeMoveCommand(
+                this.authorizationTokenStringFromServerResponse, this.currentGameNumericIdActiveSessionValueTracker, newMoveObjectPayloadAction
+        ); // Init move structure explicitly
+        String stringPayloadConvertedDataToSendSocket = new com.google.gson.Gson().toJson(makeMoveCommandObjectInstance); // Convert to json correctly
+        this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(stringPayloadConvertedDataToSendSocket); // Send socket explicitly
+    }
+
+    private void executeHighlightCommandToShowLegalMovesSafely(
+            String[] wordsArrayFullInputArgumentParam
+    ) { // This function process highlight logic calculation locally graphics
+        if (wordsArrayFullInputArgumentParam.length < 2) { // If argument missing flow
+            System.out.println("Please provide position coordinate parameter explicitly"); // Print error safely
+            return; // Early return logic
+        }
+        chess.ChessPosition selectedPosObjCoordinatePoint = parsePositionStringFromInputTextSafely(
+                wordsArrayFullInputArgumentParam[1]
+        ); // Parse string coordinate properly
+        if (selectedPosObjCoordinatePoint == null) { // If parse fail
+            System.out.println("Invalid position format try text notation explicitly"); // Print error safely
+            return; // Early return logic completely
+        }
+        if (this.currentGameStorageObjectMemoryInstance == null) { // If game not loaded yet locally
+            System.out.println("Game state not loaded yet please wait explicitly"); // Print error safely
+            return; // Early return logic completely
+        }
+        java.util.Collection<chess.ChessMove> validMovesCollectionArrayStorage =
+                this.currentGameStorageObjectMemoryInstance.validMoves(selectedPosObjCoordinatePoint); // Get moves efficiently
+        java.util.Collection<chess.ChessPosition> endPositionsHighlightCollectionArray =
+                new java.util.HashSet<>(); // Init hash set safely correctly
+        if (validMovesCollectionArrayStorage != null) { // If moves exist iterate mapping
+            for (chess.ChessMove chessMoveObjectItemTrackerFromCollectionLocal : validMovesCollectionArrayStorage) { // Loop moves array effectively
+                endPositionsHighlightCollectionArray.add(chessMoveObjectItemTrackerFromCollectionLocal.getEndPosition()); // Add to set explicitly
+            }
+        }
+        ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceMakeRendering =
+                new ChessBoardDrawingUtility(); // Create utility
+        if (this.currentUserGameRoleColorPerspectiveStringTracker.equals("BLACK")) { // If color is black draw black cleanly
+            boardDrawingUtilityObjectInstanceMakeRendering.printBoardForBlackPerspectiveMode(
+                    endPositionsHighlightCollectionArray, selectedPosObjCoordinatePoint
+            ); // Call black highlight cleanly explicitly
+        } else { // If color is white or observer draw white board efficiently
+            boardDrawingUtilityObjectInstanceMakeRendering.printBoardForWhitePerspectiveMode(
+                    endPositionsHighlightCollectionArray, selectedPosObjCoordinatePoint
+            ); // Call white highlight cleanly explicitly
         }
     }
 }
