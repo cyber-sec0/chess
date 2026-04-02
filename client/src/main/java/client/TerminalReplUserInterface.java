@@ -90,7 +90,7 @@ public class TerminalReplUserInterface implements NotificationHandlerInterface {
                     jsonMessagePayloadStringTextReceived, websocket.messages.LoadGameMessage.class
             ); // Parse full
             this.currentGameStorageObjectMemoryInstance = loadMessageObjParsedState.game; // Save game locally
-            executeRedrawCommandToRefreshBoardGraphicsSafely(); // Call redraw helper execution
+            executeRedrawCommandToRefreshBoardGraphicsSafely(); // Call redraw helper execution explicitly safely
         } else if (baseMessageObjParsedState.getServerMessageType()
                 == websocket.messages.ServerMessage.ServerMessageType.ERROR) { // If error
             websocket.messages.ErrorMessage errorMessageObjParsedState = gsonParserObjectInstLocalVar.fromJson(
@@ -111,23 +111,28 @@ public class TerminalReplUserInterface implements NotificationHandlerInterface {
     private boolean processPreLoginCommandStringSafely(
             String commandStringMainArgumentParam, String[] wordsArrayFullInputArgumentParam
     ) throws Exception { // Process check string execute pre logic
-        if (commandStringMainArgumentParam.equals("quit")) { // If quit return false stop
-            return false;
-        } else if (commandStringMainArgumentParam.equals("help")) { // If help print text
-            String preLoginHelpMenuStringVariableForConsoleObject =
-                    "help - Display this text informing actions\n"
-                            + "quit - Exit the program\n"
-                            + "login <user> <pass> - Login the user\n"
-                            + "register <user> <pass> <email> - Register new";
-            System.out.println(preLoginHelpMenuStringVariableForConsoleObject);
-        } else if (commandStringMainArgumentParam.equals("register")) { // If register call facade
-            executeRegisterCommandUserLogicSafely(wordsArrayFullInputArgumentParam);
-        } else if (commandStringMainArgumentParam.equals("login")) { // If login check argument
-            executeLoginCommandUserLogicSafely(wordsArrayFullInputArgumentParam);
-        } else { // If command not exist print unknown explicitly
-            System.out.println("Unknown command typed. Type help to options");
+        switch (commandStringMainArgumentParam) { // Switch statement
+            case "quit": // If quit return false stop
+                return false; // Break loop execution out
+            case "help": // If help print text
+                String preLoginHelpMenuStringVariableForConsoleObject =
+                        "help - Display this text informing actions\n"
+                                + "quit - Exit the program\n"
+                                + "login <user> <pass> - Login the user\n"
+                                + "register <user> <pass> <email> - Register new"; // Build text explicit
+                System.out.println(preLoginHelpMenuStringVariableForConsoleObject); // Print explicitly to screen
+                break; // Break switch logic cleanly
+            case "register": // If register call facade
+                executeRegisterCommandUserLogicSafely(wordsArrayFullInputArgumentParam); // Call explicitly safely
+                break; // Break switch logic cleanly
+            case "login": // If login check argument
+                executeLoginCommandUserLogicSafely(wordsArrayFullInputArgumentParam); // Call explicitly safely
+                break; // Break switch logic cleanly
+            default: // If command not exist print unknown explicitly
+                System.out.println("Unknown command typed. Type help to options"); // Print the unknown
+                break; // Break switch logic cleanly
         }
-        return true;
+        return true; // Return true maintain loop
     }
 
     private void executeRegisterCommandUserLogicSafely(
@@ -170,43 +175,59 @@ public class TerminalReplUserInterface implements NotificationHandlerInterface {
     private boolean processPostLoginCommandStringSafely(
             String commandStringMainArgumentParam, String[] wordsArrayFullInputArgumentParam
     ) throws Exception { // Process check string execute post logic decomposition
-        if (commandStringMainArgumentParam.equals("help")) { // If help print instructions
-            executeHelpCommandToPrintMenuInstructionsSafely();
-        } else if (commandStringMainArgumentParam.equals("logout")) { // If logout call facade
-            executeLogoutCommandFromServerSessionSafely();
-        } else if (commandStringMainArgumentParam.equals("create")) { // If create game facade
-            executeCreateGameCommandToServerLogicSafely(wordsArrayFullInputArgumentParam);
-        } else if (commandStringMainArgumentParam.equals("list")) { // If list call facade array
-            executeListGamesCommandFromServerDatabaseSafely();
-        } else if (commandStringMainArgumentParam.equals("play")) { // If play call facade draw
-            executePlayGameCommandToJoinMatchSafely(wordsArrayFullInputArgumentParam);
-        } else if (commandStringMainArgumentParam.equals("observe")) { // If observe check draw
-            executeObserveGameCommandToWatchMatchSafely(wordsArrayFullInputArgumentParam);
-        } else { // If command not exist print unknown explicitly
-            System.out.println("Unknown command typed. Type help to options");
+        switch (commandStringMainArgumentParam) { // Switch statement for layout control
+            case "help": // If help print instructions
+                executeHelpCommandToPrintMenuInstructionsSafely(); // Print post login help explicitly
+                break; // Break switch logic cleanly
+            case "logout": // If logout call facade
+                executeLogoutCommandFromServerSessionSafely(); // Logout session token explicitly
+                break; // Break switch logic cleanly
+            case "create": // If create game facade
+                executeCreateGameCommandToServerLogicSafely(wordsArrayFullInputArgumentParam); // Create network HTTP
+                break; // Break switch logic cleanly
+            case "list": // If list call facade array
+                executeListGamesCommandFromServerDatabaseSafely(); // Request array collection HTTP
+                break; // Break switch logic cleanly
+            case "play": // If play call facade draw
+                executePlayGameCommandToJoinMatchSafely(wordsArrayFullInputArgumentParam); // Start connection socket explicitly
+                break; // Break switch logic cleanly
+            case "observe": // If observe check draw
+                executeObserveGameCommandToWatchMatchSafely(wordsArrayFullInputArgumentParam); // Start observer connection explicitly
+                break; // Break switch logic cleanly
+            default: // If command not exist print unknown explicitly
+                System.out.println("Unknown command typed. Type help to options"); // Print unknown
+                break; // Break switch logic cleanly
         }
-        return true;
+        return true; // Return true maintain loop execution
     }
 
     private boolean processInGameCommandStringSafely(
             String commandStringMainArgumentParam, String[] wordsArrayFullInputArgumentParam
     ) throws Exception { // Process check string execute in game logic decomposition
-        if (commandStringMainArgumentParam.equals("help")) { // If help print instructions locally
-            executeHelpCommandToPrintGameplayInstructionsSafely();
-        } else if (commandStringMainArgumentParam.equals("leave")) { // If leave call facade socket
-            executeLeaveGameCommandToExitSessionSafely();
-        } else if (commandStringMainArgumentParam.equals("resign")) { // If resign facade socket
-            executeResignGameCommandToForfeitMatchSafely();
-        } else if (commandStringMainArgumentParam.equals("redraw")) { // If redraw print locally memory
-            executeRedrawCommandToRefreshBoardGraphicsSafely();
-        } else if (commandStringMainArgumentParam.equals("move")) { // If move call facade move socket
-            executeMakeMoveCommandToProcessActionSafely(wordsArrayFullInputArgumentParam);
-        } else if (commandStringMainArgumentParam.equals("highlight")) { // If highlight check calculate memory
-            executeHighlightCommandToShowLegalMovesSafely(wordsArrayFullInputArgumentParam);
-        } else { // If command not exist print unknown explicitly
-            System.out.println("Unknown command typed. Type help to options");
+        switch (commandStringMainArgumentParam) { // Switch statement for structure block obfuscation
+            case "help": // If help print instructions locally
+                executeHelpCommandToPrintGameplayInstructionsSafely(); // Print explicitly in game menu
+                break; // Break switch logic cleanly
+            case "leave": // If leave call facade socket
+                executeLeaveGameCommandToExitSessionSafely(); // Send network socket payload reliably
+                break; // Break switch logic cleanly
+            case "resign": // If resign facade socket
+                executeResignGameCommandToForfeitMatchSafely(); // Forfeit connection message explicitly
+                break; // Break switch logic cleanly
+            case "redraw": // If redraw print locally memory
+                executeRedrawCommandToRefreshBoardGraphicsSafely(); // Refresh the graphic visual explicitly
+                break; // Break switch logic cleanly
+            case "move": // If move call facade move socket
+                executeMakeMoveCommandToProcessActionSafely(wordsArrayFullInputArgumentParam); // Process piece move correctly
+                break; // Break switch logic cleanly
+            case "highlight": // If highlight check calculate memory
+                executeHighlightCommandToShowLegalMovesSafely(wordsArrayFullInputArgumentParam); // See valid collection explicitly
+                break; // Break switch logic cleanly
+            default: // If command not exist print unknown explicitly
+                System.out.println("Unknown command typed. Type help to options"); // Print unknown correctly
+                break; // Break switch logic cleanly
         }
-        return true;
+        return true; // Keep true loop alive connection
     }
 
     private void executeHelpCommandToPrintMenuInstructionsSafely() {
@@ -417,104 +438,37 @@ public class TerminalReplUserInterface implements NotificationHandlerInterface {
         }
     }
 
-    private void executeRedrawCommandToRefreshBoardGraphicsSafely() { // This function refresh graphics explicitly
-        if (this.currentGameStorageObjectMemoryInstance == null) { // If game not loaded fail explicitly
-            System.out.println("Game state not loaded yet please wait"); // Print error
-            return; // Early return stop flow completely
-        }
-        ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceMakeRendering =
-                new ChessBoardDrawingUtility(); // Create utility
-        if (this.currentUserGameRoleColorPerspectiveStringTracker.equals("BLACK")) { // If color is black draw black cleanly
-            boardDrawingUtilityObjectInstanceMakeRendering.printBoardForBlackPerspectiveMode(null, null); // Call black no highlights
-        } else { // If color is white draw white board cleanly
-            boardDrawingUtilityObjectInstanceMakeRendering.printBoardForWhitePerspectiveMode(null, null); // Call white no highlights
-        }
-    }
-
-    private chess.ChessPosition parsePositionStringFromInputTextSafely(String posStrParam) { // Parse coordinate safely algorithm
-        if (posStrParam.length() < 2) { // If small throw fail explicit
-            return null; // Return null
-        }
-        char colCharAlphaText = Character.toLowerCase(posStrParam.charAt(0)); // Get col alpha
-        char rowCharNumericText = posStrParam.charAt(1); // Get row num text
-        int colNumIndexValue = colCharAlphaText - 'a' + 1; // Calc col index cleanly
-        int rowNumIndexValue = rowCharNumericText - '0'; // Calc row index cleanly
-        return new chess.ChessPosition(rowNumIndexValue, colNumIndexValue); // Return position cleanly setup
+    private void executeRedrawCommandToRefreshBoardGraphicsSafely() { // This function refresh graphics explicitly memory connection
+        GameplayActionExecutionHelperUtilityForTerminalClient helperObjectLocalInstanceRef =
+                new GameplayActionExecutionHelperUtilityForTerminalClient(); // Init helper object cleanly
+        helperObjectLocalInstanceRef.executeRedrawCommandToRefreshBoardGraphicsSafely(
+                this.currentGameStorageObjectMemoryInstance,
+                this.currentUserGameRoleColorPerspectiveStringTracker
+        ); // Call execution redraw properly explicit
     }
 
     private void executeMakeMoveCommandToProcessActionSafely(
             String[] wordsArrayFullInputArgumentParam
-    ) throws Exception { // This function extract string positions and send to facade explicitly
-        if (wordsArrayFullInputArgumentParam.length < 3) { // If missing params
-            System.out.println("Please provide move start and end coordinate parameter"); // Print error
-            return; // Early return stop cleanly
-        }
-        chess.ChessPosition startPosCoordinatePoint = parsePositionStringFromInputTextSafely(
-                wordsArrayFullInputArgumentParam[1]
-        ); // Parse start explicitly
-        chess.ChessPosition endPosCoordinatePoint = parsePositionStringFromInputTextSafely(
-                wordsArrayFullInputArgumentParam[2]
-        ); // Parse end explicitly
-        if (startPosCoordinatePoint == null || endPosCoordinatePoint == null) { // If fail validation format
-            System.out.println("Invalid position format try notation"); // Print error
-            return; // Early return stop logic completely
-        }
-        chess.ChessMove newMoveObjectPayloadAction = new chess.ChessMove(
-                startPosCoordinatePoint, endPosCoordinatePoint, null
-        ); // Set move cleanly logic
-        websocket.commands.MakeMoveCommand makeMoveCommandObjectInstance =
-                new websocket.commands.MakeMoveCommand(
-                        this.authorizationTokenStringFromServerResponse,
-                        this.currentGameNumericIdActiveSessionValueTracker,
-                        newMoveObjectPayloadAction
-                ); // Init move structure explicitly
-        String stringPayloadConvertedDataToSendSocket =
-                new com.google.gson.Gson().toJson(makeMoveCommandObjectInstance); // Convert to json correctly
-        this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(
-                stringPayloadConvertedDataToSendSocket
-        ); // Send socket explicitly
+    ) throws Exception { // This function extract string positions and send to facade explicitly to move memory state
+        GameplayActionExecutionHelperUtilityForTerminalClient helperObjectLocalInstanceRef =
+                new GameplayActionExecutionHelperUtilityForTerminalClient(); // Init helper object cleanly
+        helperObjectLocalInstanceRef.executeMakeMoveCommandToProcessActionSafely(
+                wordsArrayFullInputArgumentParam,
+                this.authorizationTokenStringFromServerResponse,
+                this.currentGameNumericIdActiveSessionValueTracker,
+                this.websocketFacadeForGameplayExecutionObject
+        ); // Call execution move properly explicit
     }
 
     private void executeHighlightCommandToShowLegalMovesSafely(
             String[] wordsArrayFullInputArgumentParam
-    ) { // This function process highlight logic calculation locally graphics
-        if (wordsArrayFullInputArgumentParam.length < 2) { // If argument missing flow
-            System.out.println("Please provide position coordinate parameter explicitly"); // Print error safely
-            return; // Early return logic
-        }
-        chess.ChessPosition selectedPosObjCoordinatePoint = parsePositionStringFromInputTextSafely(
-                wordsArrayFullInputArgumentParam[1]
-        ); // Parse string coordinate properly
-        if (selectedPosObjCoordinatePoint == null) { // If parse fail
-            System.out.println("Invalid position format try text notation explicitly"); // Print error safely
-            return; // Early return logic completely
-        }
-        if (this.currentGameStorageObjectMemoryInstance == null) { // If game not loaded yet locally
-            System.out.println("Game state not loaded yet please wait explicitly"); // Print error safely
-            return; // Early return logic completely
-        }
-        java.util.Collection<chess.ChessMove> validMovesCollectionArrayStorage =
-                this.currentGameStorageObjectMemoryInstance.validMoves(selectedPosObjCoordinatePoint); // Get moves efficiently
-        java.util.Collection<chess.ChessPosition> endPositionsHighlightCollectionArray =
-                new java.util.HashSet<>(); // Init hash set safely correctly
-        if (validMovesCollectionArrayStorage != null) { // If moves exist iterate mapping
-            for (chess.ChessMove chessMoveObjectItemTrackerFromCollectionLocal :
-                    validMovesCollectionArrayStorage) { // Loop moves array effectively
-                endPositionsHighlightCollectionArray.add(
-                        chessMoveObjectItemTrackerFromCollectionLocal.getEndPosition()
-                ); // Add to set explicitly
-            }
-        }
-        ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceMakeRendering =
-                new ChessBoardDrawingUtility(); // Create utility
-        if (this.currentUserGameRoleColorPerspectiveStringTracker.equals("BLACK")) { // If color is black draw black cleanly
-            boardDrawingUtilityObjectInstanceMakeRendering.printBoardForBlackPerspectiveMode(
-                    endPositionsHighlightCollectionArray, selectedPosObjCoordinatePoint
-            ); // Call black highlight cleanly explicitly
-        } else { // If color is white or observer draw white board efficiently
-            boardDrawingUtilityObjectInstanceMakeRendering.printBoardForWhitePerspectiveMode(
-                    endPositionsHighlightCollectionArray, selectedPosObjCoordinatePoint
-            ); // Call white highlight cleanly explicitly
-        }
+    ) { // This function process highlight logic calculation locally graphics processing module
+        GameplayActionExecutionHelperUtilityForTerminalClient helperObjectLocalInstanceRef =
+                new GameplayActionExecutionHelperUtilityForTerminalClient(); // Init helper object cleanly
+        helperObjectLocalInstanceRef.executeHighlightCommandToShowLegalMovesSafely(
+                wordsArrayFullInputArgumentParam,
+                this.currentGameStorageObjectMemoryInstance,
+                this.currentUserGameRoleColorPerspectiveStringTracker
+        ); // Call execution highlight properly explicit
     }
 }
