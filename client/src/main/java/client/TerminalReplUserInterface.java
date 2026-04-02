@@ -84,19 +84,22 @@ public class TerminalReplUserInterface implements NotificationHandlerInterface {
         websocket.messages.ServerMessage baseMessageObjParsedState = gsonParserObjectInstLocalVar.fromJson(
                 jsonMessagePayloadStringTextReceived, websocket.messages.ServerMessage.class
         ); // Parse type safely
-        if (baseMessageObjParsedState.getServerMessageType() == websocket.messages.ServerMessage.ServerMessageType.LOAD_GAME) { // If load
+        if (baseMessageObjParsedState.getServerMessageType()
+                == websocket.messages.ServerMessage.ServerMessageType.LOAD_GAME) { // If load
             websocket.messages.LoadGameMessage loadMessageObjParsedState = gsonParserObjectInstLocalVar.fromJson(
                     jsonMessagePayloadStringTextReceived, websocket.messages.LoadGameMessage.class
             ); // Parse full
             this.currentGameStorageObjectMemoryInstance = loadMessageObjParsedState.game; // Save game locally
             executeRedrawCommandToRefreshBoardGraphicsSafely(); // Call redraw helper execution
-        } else if (baseMessageObjParsedState.getServerMessageType() == websocket.messages.ServerMessage.ServerMessageType.ERROR) { // If error
+        } else if (baseMessageObjParsedState.getServerMessageType()
+                == websocket.messages.ServerMessage.ServerMessageType.ERROR) { // If error
             websocket.messages.ErrorMessage errorMessageObjParsedState = gsonParserObjectInstLocalVar.fromJson(
                     jsonMessagePayloadStringTextReceived, websocket.messages.ErrorMessage.class
             ); // Parse full error
             System.out.println("\n[SERVER_ERROR] " + errorMessageObjParsedState.errorMessage); // Print error explicitly
             printCurrentTerminalPromptStringLogic(); // Reprint prompt inline execution
-        } else if (baseMessageObjParsedState.getServerMessageType() == websocket.messages.ServerMessage.ServerMessageType.NOTIFICATION) { // If notification
+        } else if (baseMessageObjParsedState.getServerMessageType()
+                == websocket.messages.ServerMessage.ServerMessageType.NOTIFICATION) { // If notification
             websocket.messages.NotificationMessage notificationMessageObjParsedState = gsonParserObjectInstLocalVar.fromJson(
                     jsonMessagePayloadStringTextReceived, websocket.messages.NotificationMessage.class
             ); // Parse full notification
@@ -231,7 +234,7 @@ public class TerminalReplUserInterface implements NotificationHandlerInterface {
     }
 
     private void executeLogoutCommandFromServerSessionSafely() throws Exception {
-        // This function send logout request and reset the local variables boolean state
+        // This function send logout request and reset the local variables boolean state game
         this.serverFacadeObjectForHttpConnection.logoutUserOnServer(
                 this.authorizationTokenStringFromServerResponse
         );
@@ -314,7 +317,9 @@ public class TerminalReplUserInterface implements NotificationHandlerInterface {
                     ); // Create connect command securely
 
             String stringPayloadConvertedDataToSend = new com.google.gson.Gson().toJson(connectCommandObjectInstance); // Convert
-            this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(stringPayloadConvertedDataToSend); // Send socket
+            this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(
+                    stringPayloadConvertedDataToSend
+            ); // Send socket explicitly
 
             this.isUserCurrentlyInGameplayStateTrackerBoolean = true; // State change
             this.currentGameNumericIdActiveSessionValueTracker = actualGameIdIntegerNumberValueExtracted; // Save track
@@ -359,7 +364,9 @@ public class TerminalReplUserInterface implements NotificationHandlerInterface {
                     ); // Create connect command securely
 
             String stringPayloadConvertedDataToSend = new com.google.gson.Gson().toJson(connectCommandObjectInstance); // Convert
-            this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(stringPayloadConvertedDataToSend); // Send socket
+            this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(
+                    stringPayloadConvertedDataToSend
+            ); // Send socket explicitly
 
             this.isUserCurrentlyInGameplayStateTrackerBoolean = true; // State change observer
             this.currentGameNumericIdActiveSessionValueTracker = actualGameIdIntegerNumberValueExtracted; // Save track explicitly
@@ -380,7 +387,9 @@ public class TerminalReplUserInterface implements NotificationHandlerInterface {
                 ); // Create leave command securely
 
         String stringPayloadConvertedDataToSend = new com.google.gson.Gson().toJson(leaveCommandObjectInstance); // Convert cleanly
-        this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(stringPayloadConvertedDataToSend); // Send socket explicitly
+        this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(
+                stringPayloadConvertedDataToSend
+        ); // Send socket explicitly
 
         this.isUserCurrentlyInGameplayStateTrackerBoolean = false; // Reset boolean false explicitly
         this.currentGameStorageObjectMemoryInstance = null; // Reset board null reliably
@@ -400,7 +409,9 @@ public class TerminalReplUserInterface implements NotificationHandlerInterface {
                     ); // Create resign command reliably
 
             String stringPayloadConvertedDataToSend = new com.google.gson.Gson().toJson(resignCommandObjectInstance); // Convert cleanly
-            this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(stringPayloadConvertedDataToSend); // Send socket explicitly
+            this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(
+                    stringPayloadConvertedDataToSend
+            ); // Send socket explicitly
         } else { // If not confirm exit procedure safely
             System.out.println("Resign action cancelled safely completely"); // Print cancel output explicitly
         }
@@ -438,18 +449,30 @@ public class TerminalReplUserInterface implements NotificationHandlerInterface {
             System.out.println("Please provide move start and end coordinate parameter"); // Print error
             return; // Early return stop cleanly
         }
-        chess.ChessPosition startPosCoordinatePoint = parsePositionStringFromInputTextSafely(wordsArrayFullInputArgumentParam[1]); // Parse start
-        chess.ChessPosition endPosCoordinatePoint = parsePositionStringFromInputTextSafely(wordsArrayFullInputArgumentParam[2]); // Parse end explicitly
+        chess.ChessPosition startPosCoordinatePoint = parsePositionStringFromInputTextSafely(
+                wordsArrayFullInputArgumentParam[1]
+        ); // Parse start explicitly
+        chess.ChessPosition endPosCoordinatePoint = parsePositionStringFromInputTextSafely(
+                wordsArrayFullInputArgumentParam[2]
+        ); // Parse end explicitly
         if (startPosCoordinatePoint == null || endPosCoordinatePoint == null) { // If fail validation format
             System.out.println("Invalid position format try notation"); // Print error
             return; // Early return stop logic completely
         }
-        chess.ChessMove newMoveObjectPayloadAction = new chess.ChessMove(startPosCoordinatePoint, endPosCoordinatePoint, null); // Set move cleanly logic
-        websocket.commands.MakeMoveCommand makeMoveCommandObjectInstance = new websocket.commands.MakeMoveCommand(
-                this.authorizationTokenStringFromServerResponse, this.currentGameNumericIdActiveSessionValueTracker, newMoveObjectPayloadAction
-        ); // Init move structure explicitly
-        String stringPayloadConvertedDataToSendSocket = new com.google.gson.Gson().toJson(makeMoveCommandObjectInstance); // Convert to json correctly
-        this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(stringPayloadConvertedDataToSendSocket); // Send socket explicitly
+        chess.ChessMove newMoveObjectPayloadAction = new chess.ChessMove(
+                startPosCoordinatePoint, endPosCoordinatePoint, null
+        ); // Set move cleanly logic
+        websocket.commands.MakeMoveCommand makeMoveCommandObjectInstance =
+                new websocket.commands.MakeMoveCommand(
+                        this.authorizationTokenStringFromServerResponse,
+                        this.currentGameNumericIdActiveSessionValueTracker,
+                        newMoveObjectPayloadAction
+                ); // Init move structure explicitly
+        String stringPayloadConvertedDataToSendSocket =
+                new com.google.gson.Gson().toJson(makeMoveCommandObjectInstance); // Convert to json correctly
+        this.websocketFacadeForGameplayExecutionObject.sendCommandMessageToServerEndpoint(
+                stringPayloadConvertedDataToSendSocket
+        ); // Send socket explicitly
     }
 
     private void executeHighlightCommandToShowLegalMovesSafely(
@@ -475,8 +498,11 @@ public class TerminalReplUserInterface implements NotificationHandlerInterface {
         java.util.Collection<chess.ChessPosition> endPositionsHighlightCollectionArray =
                 new java.util.HashSet<>(); // Init hash set safely correctly
         if (validMovesCollectionArrayStorage != null) { // If moves exist iterate mapping
-            for (chess.ChessMove chessMoveObjectItemTrackerFromCollectionLocal : validMovesCollectionArrayStorage) { // Loop moves array effectively
-                endPositionsHighlightCollectionArray.add(chessMoveObjectItemTrackerFromCollectionLocal.getEndPosition()); // Add to set explicitly
+            for (chess.ChessMove chessMoveObjectItemTrackerFromCollectionLocal :
+                    validMovesCollectionArrayStorage) { // Loop moves array effectively
+                endPositionsHighlightCollectionArray.add(
+                        chessMoveObjectItemTrackerFromCollectionLocal.getEndPosition()
+                ); // Add to set explicitly
             }
         }
         ChessBoardDrawingUtility boardDrawingUtilityObjectInstanceMakeRendering =

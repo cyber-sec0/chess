@@ -91,7 +91,6 @@ public class ChessBoardDrawingUtility { // This class is make to draw chess boar
         ); // Call footer print gracefully
     }
 
-    // Keep the other helper methods (`printTheLettersHeaderRowHelperFunction`, `getInitialPieceStringForPositionCoordinate`) exactly as they were in Phase 5...
     private void printTheLettersHeaderRowHelperFunction(
             int startColumnIntegerIndexRange, int endColumnIntegerIndexRange,
             int colDirectionIntegerStepValue
