@@ -1,6 +1,6 @@
 package client;
 
-import javax.websocket.*;
+import jakarta.websocket.*;
 import java.net.URI;
 
 public class WebSocketFacadeForGameConnection extends Endpoint { // This class handle client socket architecture
